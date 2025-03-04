@@ -1,0 +1,415 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: var(--background);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: var(--hover);
+  color: var(--text);
+}
+
+.loadingContainer, .errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.spinner {
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top: 3px solid var(--primary);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.studentProfile {
+  padding: 0 0 20px;
+}
+
+.profileHeader {
+  display: flex;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--card-bg);
+}
+
+.studentAvatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary);
+  color: white;
+  font-size: 32px;
+  font-weight: 600;
+  margin-right: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.studentInfo {
+  flex: 1;
+}
+
+.studentName {
+  margin: 0 0 10px;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.studentMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.statusBadge {
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.statusIndicator {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.active {
+  background-color: var(--success-bg);
+  color: var(--success);
+}
+
+.inactive {
+  background-color: var(--error-bg);
+  color: var(--error);
+}
+
+.pending {
+  background-color: var(--warning-bg);
+  color: var(--warning);
+}
+
+.emailLabel, .contactLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.profileContent {
+  padding: 24px;
+}
+
+.infoSection {
+  margin-bottom: 32px;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid var(--border);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.infoItem {
+  background-color: var(--background);
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.infoItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.infoLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.infoValue {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.progressBar {
+  height: 10px;
+  background-color: var(--gray-100);
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: var(--primary);
+  border-radius: 5px;
+}
+
+.progressText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.coursesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.courseItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--background);
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.courseItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.courseIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: var(--primary-bg);
+  color: var(--primary);
+}
+
+.courseInfo {
+  flex: 1;
+}
+
+.courseTitle {
+  display: block;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  background-color: var(--background);
+  border-radius: 10px;
+  border: 1px dashed var(--border);
+}
+
+.emptyState p {
+  margin-top: 12px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--primary-bg);
+  color: var(--primary);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.actionButton:hover {
+  background-color: var(--primary-light);
+}
+
+.profileActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 0 24px;
+  margin-top: 20px;
+}
+
+.primaryButton, .secondaryButton {
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.secondaryButton {
+  background-color: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.secondaryButton:hover {
+  background-color: var(--hover);
+}
+
+.primaryButton {
+  background-color: var(--primary);
+  border: 1px solid var(--primary);
+  color: white;
+}
+
+.primaryButton:hover {
+  background-color: var(--primary-dark);
+}
+
+.button {
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: var(--primary);
+  border: 1px solid var(--primary);
+  color: white;
+  margin-top: 16px;
+}
+
+@media (max-width: 768px) {
+  .infoGrid,
+  .coursesList {
+    grid-template-columns: 1fr;
+  }
+  
+  .studentMeta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .profileHeader {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .studentAvatar {
+    margin-right: 0;
+    margin-bottom: 16px;
+  }
+  
+  .sectionHeader {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .modalContent {
+    width: 95%;
+    height: 95vh;
+    max-height: 95vh;
+  }
+} 

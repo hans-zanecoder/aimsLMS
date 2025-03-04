@@ -1,0 +1,178 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools react-dom.development.js:32366:33
+[CustomLog] API Request: GET http://localhost:5000/api/students (Attempt 1/3) customLogger.ts:43:21
+[CustomLog] Full URL: http://localhost:5000/api/students customLogger.ts:43:21
+[CustomLog] API Request: GET http://localhost:5000/api/auth/me (Attempt 1/3) customLogger.ts:43:21
+[CustomLog] Full URL: http://localhost:5000/api/auth/me customLogger.ts:43:21
+[CustomLog] API Request: GET http://localhost:5000/api/students (Attempt 1/3) customLogger.ts:43:21
+[CustomLog] Full URL: http://localhost:5000/api/students customLogger.ts:43:21
+[CustomLog] API Request: GET http://localhost:5000/api/auth/me (Attempt 1/3) customLogger.ts:43:21
+[CustomLog] Full URL: http://localhost:5000/api/auth/me customLogger.ts:43:21
+[CustomLog] API Request: GET http://localhost:5000/api/course-classes (Attempt 1/3) customLogger.ts:43:21
+[CustomLog] Full URL: http://localhost:5000/api/course-classes customLogger.ts:43:21
+[CustomLog] Request includes credentials: include customLogger.ts:43:21
+[CustomLog] Document cookie info (length): 0 customLogger.ts:43:21
+[CustomLog] API response: 200 OK 
+Response { type: "cors", url: "http://localhost:5000/api/course-classes", redirected: false, status: 200, ok: true, statusText: "OK", headers: Headers(2), body: ReadableStream, bodyUsed: false }
+customLogger.ts:43:21
+Course data received: 
+Array []
+page.tsx:243:25
+[CustomLog] Request includes credentials: include customLogger.ts:43:21
+[CustomLog] Document cookie info (length): 0 customLogger.ts:43:21
+[CustomLog] API response: 200 OK 
+Response { type: "cors", url: "http://localhost:5000/api/auth/me", redirected: false, status: 200, ok: true, statusText: "OK", headers: Headers(2), body: ReadableStream, bodyUsed: false }
+customLogger.ts:43:21
+[CustomLog] Request includes credentials: include customLogger.ts:43:21
+[CustomLog] Document cookie info (length): 0 customLogger.ts:43:21
+[CustomLog] API response: 200 OK 
+Response { type: "cors", url: "http://localhost:5000/api/students", redirected: false, status: 200, ok: true, statusText: "OK", headers: Headers(2), body: ReadableStream, bodyUsed: false }
+customLogger.ts:43:21
+[CustomLog] Request includes credentials: include customLogger.ts:43:21
+[CustomLog] Document cookie info (length): 0 customLogger.ts:43:21
+[CustomLog] API response: 200 OK 
+Response { type: "cors", url: "http://localhost:5000/api/auth/me", redirected: false, status: 200, ok: true, statusText: "OK", headers: Headers(2), body: ReadableStream, bodyUsed: false }
+customLogger.ts:43:21
+[CustomLog] Request includes credentials: include customLogger.ts:43:21
+[CustomLog] Document cookie info (length): 0 customLogger.ts:43:21
+[CustomLog] API response: 200 OK 
+Response { type: "cors", url: "http://localhost:5000/api/students", redirected: false, status: 200, ok: true, statusText: "OK", headers: Headers(2), body: ReadableStream, bodyUsed: false }
+customLogger.ts:43:21
+[CustomLog] API Request: GET http://localhost:5000/api/students (Attempt 1/3) customLogger.ts:43:21
+[CustomLog] Full URL: http://localhost:5000/api/students customLogger.ts:43:21
+[CustomLog] API Request: GET http://localhost:5000/api/students (Attempt 1/3) customLogger.ts:43:21
+[CustomLog] Full URL: http://localhost:5000/api/students customLogger.ts:43:21
+[CustomLog] Request includes credentials: include customLogger.ts:43:21
+[CustomLog] Document cookie info (length): 0 customLogger.ts:43:21
+[CustomLog] API response: 200 OK 
+Response { type: "cors", url: "http://localhost:5000/api/students", redirected: false, status: 200, ok: true, statusText: "OK", headers: Headers(2), body: ReadableStream, bodyUsed: false }
+customLogger.ts:43:21
+[CustomLog] Request includes credentials: include customLogger.ts:43:21
+[CustomLog] Document cookie info (length): 0 customLogger.ts:43:21
+[CustomLog] API response: 200 OK 
+Response { type: "cors", url: "http://localhost:5000/api/students", redirected: false, status: 200, ok: true, statusText: "OK", headers: Headers(2), body: ReadableStream, bodyUsed: false }
+customLogger.ts:43:21
+Saving course: 
+Object { startDate: "2025-03-04", endDate: "2025-06-02", startTime: "09:00", endTime: "12:00", classDays: (3) […], enrolledStudents: [], instructorId: "67c3c25be6aae6fe230d02d5", programId: "intro-mua", programName: "Intro MUA", status: "Scheduled", … }
+page.tsx:327:17
+[CustomLog] API Request: POST http://localhost:5000/api/course-classes (Attempt 1/3) customLogger.ts:43:21
+[CustomLog] Full URL: http://localhost:5000/api/course-classes customLogger.ts:43:21
+XHRPOST
+http://localhost:5000/api/course-classes
+[HTTP/1.1 500 Internal Server Error 313ms]
+
+[CustomLog] Request includes credentials: include customLogger.ts:43:21
+[CustomLog] Document cookie info (length): 0 customLogger.ts:43:21
+[CustomLog] API response: 500 Internal Server Error 
+Response { type: "cors", url: "http://localhost:5000/api/course-classes", redirected: false, status: 500, ok: false, statusText: "Internal Server Error", headers: Headers(2), body: ReadableStream, bodyUsed: false }
+customLogger.ts:43:21
+[CustomLog ERROR] API response error: 500 Internal Server Error app-index.js:35:22
+[CustomLog ERROR] Error response body: {"message":"Server error"} app-index.js:35:22
+[CustomLog ERROR] Parsed error data: 
+Object { message: "Server error" }
+app-index.js:35:22
+[CustomLog ERROR] API request failed (Attempt 1/3): ApiError: Server error
+    ApiError webpack-internal:///(app-pages-browser)/./src/utils/api.ts:18
+    apiRequest webpack-internal:///(app-pages-browser)/./src/utils/api.ts:86
+    create webpack-internal:///(app-pages-browser)/./src/utils/api.ts:202
+    handleSaveCourse webpack-internal:///(app-pages-browser)/./src/app/admin/page.tsx:348
+    handleSubmit webpack-internal:///(app-pages-browser)/./src/components/CourseForm.tsx:287
+    React 21
+    hydrateRoot webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/client.js:16
+    hydrate webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-index.js:245
+    startTransition React
+    hydrate webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-index.js:245
+    <anonymous> webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-next-dev.js:10
+    appBootstrap webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-bootstrap.js:57
+    loadScriptsInSequence webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-bootstrap.js:23
+    appBootstrap webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-bootstrap.js:56
+    <anonymous> webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-next-dev.js:8
+    NextJS 7
+app-index.js:35:22
+[CustomLog] Retrying in 2000ms... customLogger.ts:43:21
+[CustomLog] API Request: POST http://localhost:5000/api/course-classes (Attempt 2/3) customLogger.ts:43:21
+[CustomLog] Full URL: http://localhost:5000/api/course-classes customLogger.ts:43:21
+XHRPOST
+http://localhost:5000/api/course-classes
+[HTTP/1.1 500 Internal Server Error 202ms]
+
+[CustomLog] Request includes credentials: include customLogger.ts:43:21
+[CustomLog] Document cookie info (length): 0 customLogger.ts:43:21
+[CustomLog] API response: 500 Internal Server Error 
+Response { type: "cors", url: "http://localhost:5000/api/course-classes", redirected: false, status: 500, ok: false, statusText: "Internal Server Error", headers: Headers(2), body: ReadableStream, bodyUsed: false }
+customLogger.ts:43:21
+[CustomLog ERROR] API response error: 500 Internal Server Error app-index.js:35:22
+[CustomLog ERROR] Error response body: {"message":"Server error"} app-index.js:35:22
+[CustomLog ERROR] Parsed error data: 
+Object { message: "Server error" }
+app-index.js:35:22
+[CustomLog ERROR] API request failed (Attempt 2/3): ApiError: Server error
+    ApiError webpack-internal:///(app-pages-browser)/./src/utils/api.ts:18
+    apiRequest webpack-internal:///(app-pages-browser)/./src/utils/api.ts:86
+    create webpack-internal:///(app-pages-browser)/./src/utils/api.ts:202
+    handleSaveCourse webpack-internal:///(app-pages-browser)/./src/app/admin/page.tsx:348
+    handleSubmit webpack-internal:///(app-pages-browser)/./src/components/CourseForm.tsx:287
+    React 21
+    hydrateRoot webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/client.js:16
+    hydrate webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-index.js:245
+    startTransition React
+    hydrate webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-index.js:245
+    <anonymous> webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-next-dev.js:10
+    appBootstrap webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-bootstrap.js:57
+    loadScriptsInSequence webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-bootstrap.js:23
+    appBootstrap webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-bootstrap.js:56
+    <anonymous> webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-next-dev.js:8
+    NextJS 7
+app-index.js:35:22
+[CustomLog] Retrying in 4000ms... customLogger.ts:43:21
+[CustomLog] API Request: POST http://localhost:5000/api/course-classes (Attempt 3/3) customLogger.ts:43:21
+[CustomLog] Full URL: http://localhost:5000/api/course-classes customLogger.ts:43:21
+XHRPOST
+http://localhost:5000/api/course-classes
+[HTTP/1.1 500 Internal Server Error 201ms]
+
+[CustomLog] Request includes credentials: include customLogger.ts:43:21
+[CustomLog] Document cookie info (length): 0 customLogger.ts:43:21
+[CustomLog] API response: 500 Internal Server Error 
+Response { type: "cors", url: "http://localhost:5000/api/course-classes", redirected: false, status: 500, ok: false, statusText: "Internal Server Error", headers: Headers(2), body: ReadableStream, bodyUsed: false }
+customLogger.ts:43:21
+[CustomLog ERROR] API response error: 500 Internal Server Error app-index.js:35:22
+[CustomLog ERROR] Error response body: {"message":"Server error"} app-index.js:35:22
+[CustomLog ERROR] Parsed error data: 
+Object { message: "Server error" }
+app-index.js:35:22
+[CustomLog ERROR] API request failed (Attempt 3/3): ApiError: Server error
+    ApiError webpack-internal:///(app-pages-browser)/./src/utils/api.ts:18
+    apiRequest webpack-internal:///(app-pages-browser)/./src/utils/api.ts:86
+    create webpack-internal:///(app-pages-browser)/./src/utils/api.ts:202
+    handleSaveCourse webpack-internal:///(app-pages-browser)/./src/app/admin/page.tsx:348
+    handleSubmit webpack-internal:///(app-pages-browser)/./src/components/CourseForm.tsx:287
+    React 21
+    hydrateRoot webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/client.js:16
+    hydrate webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-index.js:245
+    startTransition React
+    hydrate webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-index.js:245
+    <anonymous> webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-next-dev.js:10
+    appBootstrap webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-bootstrap.js:57
+    loadScriptsInSequence webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-bootstrap.js:23
+    appBootstrap webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-bootstrap.js:56
+    <anonymous> webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-next-dev.js:8
+    NextJS 7
+app-index.js:35:22
+Error creating course: ApiError: Server error
+    ApiError webpack-internal:///(app-pages-browser)/./src/utils/api.ts:18
+    apiRequest webpack-internal:///(app-pages-browser)/./src/utils/api.ts:86
+    create webpack-internal:///(app-pages-browser)/./src/utils/api.ts:202
+    handleSaveCourse webpack-internal:///(app-pages-browser)/./src/app/admin/page.tsx:348
+    handleSubmit webpack-internal:///(app-pages-browser)/./src/components/CourseForm.tsx:287
+    React 21
+    hydrateRoot webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/client.js:16
+    hydrate webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-index.js:245
+    startTransition React
+    hydrate webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-index.js:245
+    <anonymous> webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-next-dev.js:10
+    appBootstrap webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-bootstrap.js:57
+    loadScriptsInSequence webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-bootstrap.js:23
+    appBootstrap webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-bootstrap.js:56
+    <anonymous> webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@14.1.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/client/app-next-dev.js:8
+    NextJS 7
+app-index.js:35:22
