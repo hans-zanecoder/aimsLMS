@@ -1,4 +1,4 @@
-# AIMA LMS - Changes Made on March 4, 2025
+# AIMA LMS - Changes Made on March 3, 2025
 
 ## 1. Student Update Functionality Fix
 
@@ -77,7 +77,7 @@
 - Placed it within the root `<div className={styles.modalOverlay}>` element.
 - Maintained all the same functionality and styling.
 
-## Summary of Improvements
+## 4. Summary of Improvements
 
 1. **Backend Data Handling**:
    - Fixed student update functionality to properly handle name changes.
@@ -92,5 +92,28 @@
    - Fixed syntax errors and improved component organization.
    - Enhanced maintainability of the codebase.
    - Ensured proper React component structure.
+
+## 5. Version Control Setup
+
+### Problem
+- Project needed a centralized repository for version control and collaboration
+
+### Solution
+- Initialized Git repository for the project
+- Created .gitignore file to exclude unnecessary files
+- Set up GitHub repository at https://github.com/sandhanwalia/aimaLMS
+- Pushed initial codebase to the repository
+
+### Implementation Details
+- Created appropriate .gitignore for Node.js/Next.js project
+- Resolved nested Git repository issue in frontend directory
+- Successfully pushed all project files to GitHub
+- Updated documentation to reflect repository information
+
+### Benefits
+- Centralized code storage and backup
+- Enables collaboration through standard Git workflow
+- Provides change tracking and version history
+- Facilitates future CI/CD integration
 
 These changes collectively improve the user experience, data integrity, and code quality of the AIMA LMS application.

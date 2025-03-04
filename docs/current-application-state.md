@@ -190,6 +190,14 @@ The StudentForm component is a comprehensive dialog for creating and editing stu
 - API endpoints can be tested using the browser console or tools like Postman
 - Backend includes logging for debugging API calls
 
+### Version Control
+- The project is hosted on GitHub at https://github.com/sandhanwalia/aimaLMS
+- Main branch contains the latest stable version
+- Follow standard Git workflow for contributions:
+  - Create feature branches for new work
+  - Submit pull requests for review
+  - Merge to main after approval
+
 ## Deployment Considerations
 
 ### Environment Variables
