@@ -5,7 +5,7 @@ const Book = require('../models/Book');
 const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
 const { auth, authorize } = require('../middleware/auth');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 /**
  * @route   GET /api/programs
@@ -48,7 +48,7 @@ router.get('/', async (req, res) => {
     
     res.json(programsWithCounts);
   } catch (error) {
-    logger.error('Error fetching programs:', error);
+    logger.error('Error fetching programs: ' + error.message);
     res.status(500).json({ message: 'Failed to fetch programs' });
   }
 });
@@ -93,7 +93,7 @@ router.get('/:id', async (req, res) => {
       assignmentCount
     });
   } catch (error) {
-    logger.error(`Error fetching program ${req.params.id}:`, error);
+    logger.error(`Error fetching program ${req.params.id}: ${error.message}`);
     res.status(500).json({ message: 'Failed to fetch program' });
   }
 });
@@ -110,7 +110,7 @@ router.post('/', auth, authorize('admin'), async (req, res) => {
     
     res.status(201).json(program);
   } catch (error) {
-    logger.error('Error creating program:', error);
+    logger.error('Error creating program: ' + error.message);
     res.status(400).json({ message: 'Failed to create program', error: error.message });
   }
 });
@@ -137,7 +137,7 @@ router.put('/:id', auth, authorize('admin'), async (req, res) => {
     
     res.json(program);
   } catch (error) {
-    logger.error(`Error updating program ${req.params.id}:`, error);
+    logger.error(`Error updating program ${req.params.id}: ${error.message}`);
     res.status(400).json({ message: 'Failed to update program', error: error.message });
   }
 });
@@ -157,7 +157,7 @@ router.delete('/:id', auth, authorize('admin'), async (req, res) => {
     
     res.json({ message: 'Program removed successfully' });
   } catch (error) {
-    logger.error(`Error deleting program ${req.params.id}:`, error);
+    logger.error(`Error deleting program ${req.params.id}: ${error.message}`);
     res.status(500).json({ message: 'Failed to delete program' });
   }
 });
@@ -174,7 +174,7 @@ router.get('/:id/books', async (req, res) => {
     
     res.json(books);
   } catch (error) {
-    logger.error(`Error fetching books for program ${req.params.id}:`, error);
+    logger.error(`Error fetching books for program ${req.params.id}: ${error.message}`);
     res.status(500).json({ message: 'Failed to fetch books' });
   }
 });
@@ -207,7 +207,7 @@ router.get('/:id/videos', async (req, res) => {
     
     res.json(videos);
   } catch (error) {
-    logger.error(`Error fetching videos for program ${req.params.id}:`, error);
+    logger.error(`Error fetching videos for program ${req.params.id}: ${error.message}`);
     res.status(500).json({ message: 'Failed to fetch videos' });
   }
 });
@@ -244,7 +244,7 @@ router.get('/:id/assignments', async (req, res) => {
     
     res.json(assignments);
   } catch (error) {
-    logger.error(`Error fetching assignments for program ${req.params.id}:`, error);
+    logger.error(`Error fetching assignments for program ${req.params.id}: ${error.message}`);
     res.status(500).json({ message: 'Failed to fetch assignments' });
   }
 });
@@ -269,7 +269,7 @@ router.get('/enrollment-stats', auth, async (req, res) => {
     
     res.json(stats);
   } catch (error) {
-    logger.error('Error fetching enrollment stats:', error);
+    logger.error('Error fetching enrollment stats: ' + error.message);
     res.status(500).json({ message: 'Failed to fetch enrollment statistics' });
   }
 });
@@ -323,7 +323,7 @@ router.get('/enrolled', auth, async (req, res) => {
     
     res.json(programsWithCounts);
   } catch (error) {
-    logger.error('Error fetching enrolled programs:', error);
+    logger.error('Error fetching enrolled programs: ' + error.message);
     res.status(500).json({ message: 'Failed to fetch enrolled programs' });
   }
 });
