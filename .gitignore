@@ -1,9 +1,9 @@
-# Node.js dependencies
-node_modules/
-npm-debug.log
-yarn-debug.log
-yarn-error.log
-.pnpm-debug.log
+# Node.js dependencies (all node_modules directories anywhere in the project)
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
 # Next.js build output
 .next/
@@ -12,11 +12,8 @@ build/
 dist/
 
 # Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env*
+!.env.example
 
 # IDE and editor files
 .idea/
@@ -36,3 +33,45 @@ coverage/
 .cache/
 .temp/
 .tmp/
+
+# Backend specific
+backend/public/uploads/*
+!backend/public/uploads/.gitkeep
+
+# Frontend specific
+frontend/.turbo
+frontend/.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing
+.nyc_output/
+
+# Build artifacts
+*.gz
+*.tgz
+
+# Docker
+.dockerignore
+
+# Temporary files
+tmp/
+temp/
+
+# System Files
+Thumbs.db
+
+# Package manager files
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+# MongoDB Memory Server cache
+**/node_modules/.cache/mongodb-memory-server/
+**/node_modules/.mongodb-binaries/

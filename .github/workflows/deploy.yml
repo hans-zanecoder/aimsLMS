@@ -1,0 +1,353 @@
+name: AIMA LMS Deployment
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: allure-ima
+  FRONTEND_SERVICE_NAME: aima-lms-frontend
+  BACKEND_SERVICE_NAME: aima-lms-backend
+  REGION: us-west1
+  ARTIFACT_REGISTRY: us-west1-docker.pkg.dev/allure-ima/aima-lms
+  SERVICE_ACCOUNT: 782549404678-compute@developer.gserviceaccount.com
+  FRONTEND_ENV_SECRET_NAME: aima-lms-frontend
+  BACKEND_ENV_SECRET_NAME: aima-lms-backend
+
+jobs:
+  deploy:
+    name: AIMA LMS Deployment
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Fetch backend environment variables
+        id: backend-secrets
+        run: |
+          echo "Fetching backend environment variables from Secret Manager"
+          
+          # Fetch all environment variables from Secret Manager
+          gcloud secrets versions access latest --secret="${{ env.BACKEND_ENV_SECRET_NAME }}" --project=${{ env.PROJECT_ID }} > backend/.env
+          
+          # Ensure the file ends with a newline
+          sed -i -e '$a\' backend/.env
+          
+          # Create an array to store env vars for Cloud Run
+          declare -a ENV_VARS_ARRAY=()
+          
+          # Process each environment variable
+          while IFS='=' read -r key value; do
+            # Skip empty lines and comments
+            [[ -z "$key" || "$key" == \#* ]] && continue
+            
+            # Mask sensitive values in GitHub Actions logs
+            echo "::add-mask::$value"
+            
+            # Add to array for Cloud Run deployment
+            escaped_value=$(printf '%s' "$value" | sed 's/"/\\"/g' | sed "s/'/'\\\\''/g")
+            ENV_VARS_ARRAY+=("${key}=${escaped_value}")
+          done < backend/.env
+          
+          # Join array elements with commas for Cloud Run deployment
+          ENV_VARS_STRING=$(IFS=,; echo "${ENV_VARS_ARRAY[*]}")
+          
+          # Save for later steps
+          echo "env_vars_string=${ENV_VARS_STRING}" >> $GITHUB_OUTPUT
+
+      - name: Fetch frontend environment variables
+        id: frontend-secrets
+        run: |
+          echo "Fetching frontend environment variables from Secret Manager"
+          
+          # Fetch all environment variables from Secret Manager
+          gcloud secrets versions access latest --secret="${{ env.FRONTEND_ENV_SECRET_NAME }}" --project=${{ env.PROJECT_ID }} > frontend/.env.local
+          
+          # Ensure the file ends with a newline
+          sed -i -e '$a\' frontend/.env.local
+          
+          # Create an array to store env vars for Cloud Run
+          declare -a ENV_VARS_ARRAY=()
+          
+          # Process each environment variable
+          while IFS='=' read -r key value; do
+            # Skip empty lines and comments
+            [[ -z "$key" || "$key" == \#* ]] && continue
+            
+            # Mask sensitive values in GitHub Actions logs
+            echo "::add-mask::$value"
+            
+            # Add to array for Cloud Run deployment
+            escaped_value=$(printf '%s' "$value" | sed 's/"/\\"/g' | sed "s/'/'\\\\''/g")
+            ENV_VARS_ARRAY+=("${key}=${escaped_value}")
+          done < frontend/.env.local
+          
+          # Join array elements with commas for Cloud Run deployment
+          ENV_VARS_STRING=$(IFS=,; echo "${ENV_VARS_ARRAY[*]}")
+          
+          # Save for later steps
+          echo "env_vars_string=${ENV_VARS_STRING}" >> $GITHUB_OUTPUT
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Generate timestamp for unique version
+        id: timestamp
+        run: echo "timestamp=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Build and push backend Docker image
+        run: |
+          docker build \
+            -t ${{ env.ARTIFACT_REGISTRY }}/${{ env.BACKEND_SERVICE_NAME }}:${{ steps.timestamp.outputs.timestamp }} \
+            --no-cache ./backend
+
+          docker push ${{ env.ARTIFACT_REGISTRY }}/${{ env.BACKEND_SERVICE_NAME }}:${{ steps.timestamp.outputs.timestamp }}
+
+      - name: Deploy backend service
+        id: deploy-backend
+        run: |
+          # Use the processed environment variables string from previous step
+          ENV_VARS="${{ steps.backend-secrets.outputs.env_vars_string }}"
+          
+          # Check if service exists
+          if gcloud run services describe ${{ env.BACKEND_SERVICE_NAME }} --region ${{ env.REGION }} 2>/dev/null; then
+            # Service exists - deploy new revision with blue/green strategy
+            echo "Updating existing backend service..."
+            gcloud run deploy ${{ env.BACKEND_SERVICE_NAME }} \
+              --image ${{ env.ARTIFACT_REGISTRY }}/${{ env.BACKEND_SERVICE_NAME }}:${{ steps.timestamp.outputs.timestamp }} \
+              --region ${{ env.REGION }} \
+              --platform managed \
+              --allow-unauthenticated \
+              --service-account ${{ env.SERVICE_ACCOUNT }} \
+              --timeout 300 \
+              --cpu=2 \
+              --memory=2Gi \
+              --min-instances=1 \
+              --max-instances=5 \
+              --set-env-vars="$ENV_VARS"
+          else
+            # Service doesn't exist - create new service
+            echo "Creating new backend service..."
+            gcloud run deploy ${{ env.BACKEND_SERVICE_NAME }} \
+              --image ${{ env.ARTIFACT_REGISTRY }}/${{ env.BACKEND_SERVICE_NAME }}:${{ steps.timestamp.outputs.timestamp }} \
+              --region ${{ env.REGION }} \
+              --platform managed \
+              --allow-unauthenticated \
+              --service-account ${{ env.SERVICE_ACCOUNT }} \
+              --timeout 300 \
+              --cpu=2 \
+              --memory=2Gi \
+              --min-instances=1 \
+              --max-instances=5 \
+              --set-env-vars="$ENV_VARS"
+          fi
+          
+          # Get the backend URL for frontend configuration
+          BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format="value(status.url)")
+          echo "backend_url=${BACKEND_URL}" >> $GITHUB_OUTPUT
+
+      - name: Test backend deployment
+        id: test-backend
+        run: |
+          # Get service URL and construct health check URL
+          SERVICE_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format="value(status.url)")
+          HEALTH_CHECK_URL="${SERVICE_URL}/api/health"
+
+          echo "Starting health check for backend service"
+          echo "Service URL: $SERVICE_URL"
+          echo "Health check URL: $HEALTH_CHECK_URL"
+
+          # Initial wait for service to initialize
+          echo "Waiting 10 seconds for service to initialize..."
+          sleep 10
+
+          # Health check with retries
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          SUCCESS=false
+
+          until [ $RETRY_COUNT -ge $MAX_RETRIES ] || [ "$SUCCESS" = true ]; do
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "Attempt $RETRY_COUNT of $MAX_RETRIES"
+            
+            # Get full response for debugging
+            RESPONSE=$(curl -s -w "\n%{http_code}" "$HEALTH_CHECK_URL")
+            STATUS_CODE=$(echo "$RESPONSE" | tail -n1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
+            
+            echo "Response Status Code: $STATUS_CODE"
+            
+            if [ "$STATUS_CODE" -eq 200 ]; then
+              echo "Health check passed!"
+              SUCCESS=true
+            else
+              echo "Health check failed with status code: $STATUS_CODE"
+              
+              if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                echo "Waiting 15 seconds before retry..."
+                sleep 15
+              fi
+            fi
+          done
+
+          # Set output based on success
+          if [ "$SUCCESS" = true ]; then
+            echo "Backend health checks passed successfully"
+            echo "test_success=true" >> $GITHUB_OUTPUT
+          else
+            echo "Backend health check failed after $MAX_RETRIES attempts"
+            echo "test_success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push frontend Docker image
+        if: steps.test-backend.outputs.test_success == 'true'
+        run: |
+          # Add backend URL to frontend environment
+          echo "NEXT_PUBLIC_API_URL=${{ steps.deploy-backend.outputs.backend_url }}" >> frontend/.env.local
+          
+          docker build \
+            -t ${{ env.ARTIFACT_REGISTRY }}/${{ env.FRONTEND_SERVICE_NAME }}:${{ steps.timestamp.outputs.timestamp }} \
+            --no-cache ./frontend
+
+          docker push ${{ env.ARTIFACT_REGISTRY }}/${{ env.FRONTEND_SERVICE_NAME }}:${{ steps.timestamp.outputs.timestamp }}
+
+      - name: Deploy frontend service
+        if: steps.test-backend.outputs.test_success == 'true'
+        id: deploy-frontend
+        run: |
+          # Use the processed environment variables string from previous step
+          ENV_VARS="${{ steps.frontend-secrets.outputs.env_vars_string }},NEXT_PUBLIC_API_URL=${{ steps.deploy-backend.outputs.backend_url }}"
+          
+          # Check if service exists
+          if gcloud run services describe ${{ env.FRONTEND_SERVICE_NAME }} --region ${{ env.REGION }} 2>/dev/null; then
+            # Service exists - deploy new revision with blue/green strategy
+            echo "Updating existing frontend service..."
+            gcloud run deploy ${{ env.FRONTEND_SERVICE_NAME }} \
+              --image ${{ env.ARTIFACT_REGISTRY }}/${{ env.FRONTEND_SERVICE_NAME }}:${{ steps.timestamp.outputs.timestamp }} \
+              --region ${{ env.REGION }} \
+              --platform managed \
+              --allow-unauthenticated \
+              --service-account ${{ env.SERVICE_ACCOUNT }} \
+              --timeout 300 \
+              --cpu=2 \
+              --memory=2Gi \
+              --min-instances=1 \
+              --max-instances=5 \
+              --set-env-vars="$ENV_VARS"
+          else
+            # Service doesn't exist - create new service
+            echo "Creating new frontend service..."
+            gcloud run deploy ${{ env.FRONTEND_SERVICE_NAME }} \
+              --image ${{ env.ARTIFACT_REGISTRY }}/${{ env.FRONTEND_SERVICE_NAME }}:${{ steps.timestamp.outputs.timestamp }} \
+              --region ${{ env.REGION }} \
+              --platform managed \
+              --allow-unauthenticated \
+              --service-account ${{ env.SERVICE_ACCOUNT }} \
+              --timeout 300 \
+              --cpu=2 \
+              --memory=2Gi \
+              --min-instances=1 \
+              --max-instances=5 \
+              --set-env-vars="$ENV_VARS"
+          fi
+
+      - name: Test frontend deployment
+        if: steps.test-backend.outputs.test_success == 'true'
+        id: test-frontend
+        run: |
+          # Get service URL
+          SERVICE_URL=$(gcloud run services describe ${{ env.FRONTEND_SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format="value(status.url)")
+
+          echo "Starting health check for frontend service"
+          echo "Service URL: $SERVICE_URL"
+
+          # Initial wait for service to initialize
+          echo "Waiting 10 seconds for service to initialize..."
+          sleep 10
+
+          # Health check with retries
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          SUCCESS=false
+
+          until [ $RETRY_COUNT -ge $MAX_RETRIES ] || [ "$SUCCESS" = true ]; do
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "Attempt $RETRY_COUNT of $MAX_RETRIES"
+            
+            # Get full response for debugging
+            RESPONSE=$(curl -s -w "\n%{http_code}" "$SERVICE_URL")
+            STATUS_CODE=$(echo "$RESPONSE" | tail -n1)
+            
+            echo "Response Status Code: $STATUS_CODE"
+            
+            if [ "$STATUS_CODE" -eq 200 ]; then
+              echo "Health check passed!"
+              SUCCESS=true
+            else
+              echo "Health check failed with status code: $STATUS_CODE"
+              
+              if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                echo "Waiting 15 seconds before retry..."
+                sleep 15
+              fi
+            fi
+          done
+
+          # Set output based on success
+          if [ "$SUCCESS" = true ]; then
+            echo "Frontend health checks passed successfully"
+            echo "test_success=true" >> $GITHUB_OUTPUT
+          else
+            echo "Frontend health check failed after $MAX_RETRIES attempts"
+            echo "test_success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deployment Summary
+        run: |
+          echo "Deployment Summary:"
+          
+          if [ "${{ steps.test-backend.outputs.test_success }}" == "true" ]; then
+            BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE_NAME }} \
+              --region ${{ env.REGION }} \
+              --format="value(status.url)")
+            echo "✅ Backend deployed successfully: $BACKEND_URL"
+          else
+            echo "❌ Backend deployment failed"
+          fi
+          
+          if [ "${{ steps.test-frontend.outputs.test_success }}" == "true" ]; then
+            FRONTEND_URL=$(gcloud run services describe ${{ env.FRONTEND_SERVICE_NAME }} \
+              --region ${{ env.REGION }} \
+              --format="value(status.url)")
+            echo "✅ Frontend deployed successfully: $FRONTEND_URL"
+          else
+            echo "❌ Frontend deployment failed"
+          fi
