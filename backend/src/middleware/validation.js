@@ -33,7 +33,21 @@ const schemas = {
     status: Joi.string().valid('Active', 'Pending', 'Inactive'),
     phone: Joi.string(),
     location: Joi.string(),
-    department: Joi.string()
+    department: Joi.string(),
+    paymentProfile: Joi.object({
+      totalCost: Joi.number().min(0),
+      downPayment: Joi.number().min(0),
+      amountFinanced: Joi.number().min(0),
+      paymentFrequency: Joi.string().valid('weekly', 'monthly'),
+      totalPayments: Joi.number().min(0),
+      paymentAmount: Joi.number().min(0),
+      paymentDates: Joi.array().items(Joi.string()),
+      paymentHistory: Joi.array().items(Joi.object({
+        amount: Joi.number().required(),
+        date: Joi.string().required(),
+        remainingBalance: Joi.number().required()
+      }))
+    })
   }).min(1),
 
   login: Joi.object({

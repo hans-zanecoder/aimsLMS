@@ -47,6 +47,7 @@ import CourseEditDialog from '@/components/CourseEditDialog'
 import SettingsContent from './settings/components/SettingsContent'
 import BooksList from '@/components/BooksList'
 import CourseAuditDialog from '@/components/CourseAuditDialog'
+import { toast } from 'react-hot-toast'
 
 type NavSection = 'dashboard' | 'students' | 'courses' | 'analytics' | 'permissions' | 'settings' | 'books';
 
@@ -293,9 +294,16 @@ export default function AdminDashboard() {
   };
 
   // Handle student update
-  const handleEditStudent = (student: Student) => {
-    setSelectedStudent(student);
-    setIsAddStudentModalOpen(true);
+  const handleEditStudent = async (student: Student) => {
+    try {
+      // Fetch complete student data including payment profile
+      const completeStudentData = await studentsApi.getById(student.id);
+      setSelectedStudent(completeStudentData);
+      setIsAddStudentModalOpen(true);
+    } catch (error) {
+      console.error('Error fetching student data:', error);
+      toast.error('Failed to load student data. Please try again.');
+    }
   };
 
   // Handle student deletion
@@ -318,9 +326,16 @@ export default function AdminDashboard() {
   };
 
   // Handle student view detail
-  const handleViewStudent = (student: Student) => {
-    setSelectedStudent(student);
-    setIsStudentDetailModalOpen(true);
+  const handleViewStudent = async (student: Student) => {
+    try {
+      // Fetch complete student data including payment profile
+      const completeStudentData = await studentsApi.getById(student.id);
+      setSelectedStudent(completeStudentData);
+      setIsStudentDetailModalOpen(true);
+    } catch (error) {
+      console.error('Error fetching student data:', error);
+      toast.error('Failed to load student data. Please try again.');
+    }
   };
 
   // Handle student enrollment

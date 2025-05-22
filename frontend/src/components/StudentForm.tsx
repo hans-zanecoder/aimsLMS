@@ -5,7 +5,8 @@ import { Student, User, CourseBasic } from '@/types'
 import { studentsApi, coursesApi } from '@/utils/api'
 import { ApiError } from '@/utils/api'
 import styles from './StudentForm.module.css'
-import { X, User as UserIcon, Mail, Phone, MapPin, Calendar, BookOpen, Check, ChevronRight, Search, Save, Plus, Home, Building, GraduationCap, XCircle } from 'lucide-react'
+import { X, User as UserIcon, Mail, Phone, MapPin, Calendar, BookOpen, Check, ChevronRight, Search, Save, Plus, Home, Building, GraduationCap, XCircle, DollarSign, CreditCard, Clock } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 
 interface StudentFormProps {
   onClose: () => void
@@ -88,10 +89,12 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
   const [loadingCourses, setLoadingCourses] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({})
-  const [activeTab, setActiveTab] = useState('basic') // 'basic', 'enrollment'
+  const [activeTab, setActiveTab] = useState('basic') // 'basic', 'enrollment', 'payment'
   const [availableCourses, setAvailableCourses] = useState<CourseBasic[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([])
+  const [newPaymentAmount, setNewPaymentAmount] = useState<number>(0)
+  const [newPaymentDate, setNewPaymentDate] = useState<string>('')
 
   const [formData, setFormData] = useState({
     email: '',
@@ -105,7 +108,17 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
     phone: '',
     campus: 'santa_ana',
     practicalLocation: 'santa_ana',
-    status: 'Active' as 'Active' | 'Inactive' | 'Pending'
+    status: 'Active' as 'Active' | 'Inactive' | 'Pending',
+    paymentProfile: {
+      totalCost: undefined as number | undefined,
+      downPayment: undefined as number | undefined,
+      amountFinanced: undefined as number | undefined,
+      paymentFrequency: 'monthly' as 'weekly' | 'monthly',
+      totalPayments: undefined as number | undefined,
+      paymentAmount: undefined as number | undefined,
+      paymentDates: [] as string[],
+      paymentHistory: [] as { amount: number; date: string; remainingBalance: number }[]
+    }
   })
 
   // Add state to control edit mode for identity fields
@@ -118,6 +131,10 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
     lastName: '',
     email: ''
   })
+
+  // Add these state variables after the other state declarations
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [rawInputValue, setRawInputValue] = useState<string>('');
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -232,8 +249,18 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
         zipCode,
         phone: student.phone || '',
         campus: student.campus || 'santa_ana',
-        practicalLocation: student.practicalLocation || 'santa_ana',
-        status: student.status
+        practicalLocation: student.campus === 'hybrid' ? student.practicalLocation || 'santa_ana' : 'santa_ana',
+        status: student.status,
+        paymentProfile: {
+          totalCost: student.paymentProfile?.totalCost,
+          downPayment: student.paymentProfile?.downPayment,
+          amountFinanced: student.paymentProfile?.amountFinanced,
+          paymentFrequency: student.paymentProfile?.paymentFrequency || 'monthly',
+          totalPayments: student.paymentProfile?.totalPayments,
+          paymentAmount: student.paymentProfile?.paymentAmount,
+          paymentDates: student.paymentProfile?.paymentDates || [],
+          paymentHistory: student.paymentProfile?.paymentHistory || []
+        }
       })
 
       // Get enrolled courses for this student
@@ -427,12 +454,23 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
           phone: cleanedFormData.phone || undefined,
           campus: cleanedFormData.campus || undefined,
           practicalLocation: cleanedFormData.campus === 'hybrid' ? cleanedFormData.practicalLocation : undefined,
-          location: formattedAddress || undefined  // Use 'location' field for address in the API
+          location: formattedAddress || undefined,  // Use 'location' field for address in the API
+          paymentProfile: {
+            totalCost: cleanedFormData.paymentProfile.totalCost || 0,
+            downPayment: cleanedFormData.paymentProfile.downPayment || 0,
+            amountFinanced: cleanedFormData.paymentProfile.amountFinanced || 0,
+            paymentFrequency: cleanedFormData.paymentProfile.paymentFrequency,
+            totalPayments: cleanedFormData.paymentProfile.totalPayments || 0,
+            paymentAmount: cleanedFormData.paymentProfile.paymentAmount || 0,
+            paymentDates: cleanedFormData.paymentProfile.paymentDates,
+            paymentHistory: cleanedFormData.paymentProfile.paymentHistory
+          }
         }
 
         console.log('Updating student with data:', updateData);
         studentData = await studentsApi.update(student.id, updateData)
         console.log('Student update successful:', studentData);
+        toast.success('Student information updated successfully!')
       } else {
         // Create new student
         studentData = await studentsApi.create({
@@ -442,8 +480,19 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
           phone: cleanedFormData.phone,
           campus: cleanedFormData.campus,
           practicalLocation: cleanedFormData.campus === 'hybrid' ? cleanedFormData.practicalLocation : undefined,
-          status: 'Active' // Always create new students as Active
+          status: 'Active', // Always create new students as Active
+          paymentProfile: {
+            totalCost: cleanedFormData.paymentProfile.totalCost || 0,
+            downPayment: cleanedFormData.paymentProfile.downPayment || 0,
+            amountFinanced: cleanedFormData.paymentProfile.amountFinanced || 0,
+            paymentFrequency: cleanedFormData.paymentProfile.paymentFrequency,
+            totalPayments: cleanedFormData.paymentProfile.totalPayments || 0,
+            paymentAmount: cleanedFormData.paymentProfile.paymentAmount || 0,
+            paymentDates: cleanedFormData.paymentProfile.paymentDates,
+            paymentHistory: cleanedFormData.paymentProfile.paymentHistory
+          }
         })
+        toast.success('New student created successfully!')
       }
       
       // Enroll student in selected courses
@@ -486,8 +535,10 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
         }).join(', ');
         
         setError(`Please fix the following issues: ${errorFields}`);
+        toast.error('Failed to save student information. Please check the errors below.');
       } else {
         setError(error instanceof Error ? error.message : 'Failed to save student. Please try again.')
+        toast.error('Failed to save student information. Please try again.');
       }
     } finally {
       setLoading(false)
@@ -533,6 +584,16 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
 
   // Validate basic required fields (name, email, phone)
   const areBasicFieldsValid = () => {
+    const hasPaymentData = formData.paymentProfile.totalCost !== undefined || 
+                          formData.paymentProfile.downPayment !== undefined ||
+                          formData.paymentProfile.totalPayments !== undefined;
+
+    // If we're on the payment tab and have payment data, allow saving
+    if (activeTab === 'payment' && hasPaymentData) {
+      return true;
+    }
+
+    // For other tabs, check the basic required fields
     return (
       formData.firstName.trim() !== '' &&
       formData.lastName.trim() !== '' &&
@@ -559,6 +620,121 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
   // Helper function to check if a field has validation errors
   const getFieldError = (fieldName: string) => {
     return validationErrors[fieldName] || null;
+  }
+
+  // Add this function near the top of the component, after the state declarations
+  const formatCurrency = (value: number | string | undefined): string => {
+    if (value === undefined || value === '') return '';
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(num)) return '';
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
+  const formatInteger = (value: number | string | undefined): string => {
+    if (value === undefined || value === '') return '';
+    const num = typeof value === 'string' ? parseInt(value) : value;
+    if (isNaN(num)) return '';
+    return num.toLocaleString('en-US');
+  };
+
+  const handlePaymentProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    
+    if (name === 'paymentFrequency') {
+      setFormData(prev => ({
+        ...prev,
+        paymentProfile: {
+          ...prev.paymentProfile,
+          [name]: value as 'weekly' | 'monthly'
+        }
+      }));
+      return;
+    }
+
+    // For numeric fields, store the raw input value
+    setRawInputValue(value);
+    setEditingField(name);
+  };
+
+  const handlePaymentProfileBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    let numericValue;
+    
+    if (name === 'totalPayments') {
+      // For total payments, use parseInt to get whole numbers
+      numericValue = value === '' ? undefined : parseInt(value.replace(/,/g, ''));
+    } else {
+      // For other numeric fields, use parseFloat
+      numericValue = value === '' ? undefined : parseFloat(value.replace(/,/g, ''));
+    }
+    
+    if (name === 'paymentFrequency') return;
+
+    setFormData(prev => {
+      const newPaymentProfile = { ...prev.paymentProfile };
+      
+      if (name === 'totalCost' || name === 'downPayment') {
+        newPaymentProfile[name] = numericValue;
+        // Only calculate amountFinanced if both values are numbers
+        if (typeof numericValue === 'number' && !isNaN(numericValue)) {
+          const totalCost = newPaymentProfile.totalCost ?? 0;
+          const downPayment = newPaymentProfile.downPayment ?? 0;
+          newPaymentProfile.amountFinanced = totalCost - downPayment;
+        } else {
+          newPaymentProfile.amountFinanced = undefined;
+        }
+      } else if (name === 'totalPayments') {
+        newPaymentProfile[name] = numericValue;
+      }
+      
+      // Calculate payment amount if we have both amount financed and total payments
+      const amountFinanced = newPaymentProfile.amountFinanced ?? 0;
+      const totalPayments = newPaymentProfile.totalPayments ?? 0;
+      
+      if (amountFinanced > 0 && totalPayments > 0) {
+        newPaymentProfile.paymentAmount = amountFinanced / totalPayments;
+      } else {
+        newPaymentProfile.paymentAmount = undefined;
+      }
+      
+      return {
+        ...prev,
+        paymentProfile: newPaymentProfile
+      };
+    });
+
+    setEditingField(null);
+    setRawInputValue('');
+  };
+
+  const handleAddPayment = (amount: number, date: string) => {
+    setFormData(prev => {
+      const newPaymentProfile = { ...prev.paymentProfile }
+      const amountFinanced = newPaymentProfile.amountFinanced ?? 0
+      const remainingBalance = amountFinanced - amount
+      
+      // Add payment to history
+      newPaymentProfile.paymentHistory = [
+        ...newPaymentProfile.paymentHistory,
+        { amount, date, remainingBalance }
+      ]
+      
+      // Also add the date to paymentDates if not already present
+      if (!newPaymentProfile.paymentDates.includes(date)) {
+        newPaymentProfile.paymentDates = [
+          ...newPaymentProfile.paymentDates,
+          date
+        ]
+      }
+      
+      return {
+        ...prev,
+        paymentProfile: newPaymentProfile
+      }
+    })
   }
 
   return (
@@ -621,7 +797,6 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
               type="button"
               className={`${styles.tabButton} ${activeTab === 'enrollment' ? styles.activeTab : ''}`}
               onClick={() => {
-                // Only allow switching to enrollment tab if basic fields are valid
                 if (!student && !areBasicFieldsValid()) {
                   setError("Please complete all required fields (first name, last name, email, and phone) before proceeding to enrollment.");
                   return;
@@ -631,6 +806,20 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
             >
               <BookOpen className="h-4 w-4" />
               <span>Enrollment</span>
+            </button>
+            <button 
+              type="button"
+              className={`${styles.tabButton} ${activeTab === 'payment' ? styles.activeTab : ''}`}
+              onClick={() => {
+                if (!student && !areBasicFieldsValid()) {
+                  setError("Please complete all required fields before proceeding to payment profile.");
+                  return;
+                }
+                setActiveTab('payment');
+              }}
+            >
+              <DollarSign className="h-4 w-4" />
+              <span>Payment Profile</span>
             </button>
           </div>
 
@@ -1115,6 +1304,204 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
             </div>
           </div>
 
+          {/* Payment Profile Tab */}
+          <div 
+            className={`${styles.tabPanel} ${activeTab === 'payment' ? styles.activePanel : ''}`}
+            data-tab="payment"
+          >
+            <div className={styles.paymentSection}>
+              <h3 className={styles.sectionTitle}>
+                <CreditCard className="h-5 w-5" />
+                Payment Information
+              </h3>
+              
+              <div className={styles.formGroup}>
+                <label htmlFor="totalCost" className={styles.label}>
+                  Total Cost to Student
+                </label>
+                <div className={styles.inputWrapper}>
+                  <DollarSign className={styles.inputIcon} />
+                  <input
+                    type="text"
+                    id="totalCost"
+                    name="totalCost"
+                    value={editingField === 'totalCost' ? rawInputValue : formatCurrency(formData.paymentProfile.totalCost)}
+                    onChange={handlePaymentProfileChange}
+                    onBlur={handlePaymentProfileBlur}
+                    className={styles.input}
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="downPayment" className={styles.label}>
+                  Down Payment
+                </label>
+                <div className={styles.inputWrapper}>
+                  <DollarSign className={styles.inputIcon} />
+                  <input
+                    type="text"
+                    id="downPayment"
+                    name="downPayment"
+                    value={editingField === 'downPayment' ? rawInputValue : formatCurrency(formData.paymentProfile.downPayment)}
+                    onChange={handlePaymentProfileChange}
+                    onBlur={handlePaymentProfileBlur}
+                    className={styles.input}
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="amountFinanced" className={styles.label}>
+                  Amount Financed
+                </label>
+                <div className={styles.inputWrapper}>
+                  <DollarSign className={styles.inputIcon} />
+                  <input
+                    type="text"
+                    id="amountFinanced"
+                    value={formatCurrency(formData.paymentProfile.amountFinanced)}
+                    className={styles.input}
+                    disabled
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="paymentFrequency" className={styles.label}>
+                  Payment Frequency
+                </label>
+                <select
+                  id="paymentFrequency"
+                  name="paymentFrequency"
+                  value={formData.paymentProfile.paymentFrequency}
+                  onChange={handlePaymentProfileChange}
+                  className={styles.select}
+                >
+                  <option value="monthly">Monthly</option>
+                  <option value="weekly">Weekly</option>
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="totalPayments" className={styles.label}>
+                  Total Number of Payments
+                </label>
+                <div className={styles.inputWrapper}>
+                  <Clock className={styles.inputIcon} />
+                  <input
+                    type="text"
+                    id="totalPayments"
+                    name="totalPayments"
+                    value={editingField === 'totalPayments' ? rawInputValue : formatInteger(formData.paymentProfile.totalPayments)}
+                    onChange={handlePaymentProfileChange}
+                    onBlur={handlePaymentProfileBlur}
+                    className={styles.input}
+                    placeholder="1"
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="paymentAmount" className={styles.label}>
+                  Payment Amount
+                </label>
+                <div className={styles.inputWrapper}>
+                  <DollarSign className={styles.inputIcon} />
+                  <input
+                    type="text"
+                    id="paymentAmount"
+                    value={formatCurrency(formData.paymentProfile.paymentAmount)}
+                    className={styles.input}
+                    disabled
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Payment History Section */}
+            <div className={styles.paymentHistorySection}>
+              <h3 className={styles.sectionTitle}>
+                <Clock className="h-5 w-5" />
+                Payment History
+              </h3>
+
+              {/* Add Payment Form */}
+              <div className={styles.addPaymentForm}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="paymentAmount" className={styles.label}>
+                    Payment Amount
+                  </label>
+                  <div className={styles.inputWrapper}>
+                    <DollarSign className={styles.inputIcon} />
+                    <input
+                      type="number"
+                      id="newPaymentAmount"
+                      value={newPaymentAmount}
+                      onChange={(e) => setNewPaymentAmount(parseFloat(e.target.value) || 0)}
+                      className={styles.input}
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="paymentDate" className={styles.label}>
+                    Payment Date
+                  </label>
+                  <div className={styles.inputWrapper}>
+                    <Calendar className={styles.inputIcon} />
+                    <input
+                      type="date"
+                      id="paymentDate"
+                      value={newPaymentDate}
+                      onChange={(e) => setNewPaymentDate(e.target.value)}
+                      className={styles.input}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.addPaymentButton}
+                  onClick={() => {
+                    if (newPaymentAmount > 0 && newPaymentDate) {
+                      handleAddPayment(newPaymentAmount, newPaymentDate)
+                      setNewPaymentAmount(0)
+                      setNewPaymentDate('')
+                    }
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Payment
+                </button>
+              </div>
+
+              {/* Payment History List */}
+              <div className={styles.paymentHistoryList}>
+                {formData.paymentProfile.paymentHistory.map((payment, index) => (
+                  <div key={index} className={styles.paymentHistoryItem}>
+                    <div className={styles.paymentInfo}>
+                      <span className={styles.paymentDate}>
+                        {new Date(payment.date).toLocaleDateString()}
+                      </span>
+                      <span className={styles.paymentAmount}>
+                        ${formatCurrency(payment.amount)}
+                      </span>
+                    </div>
+                    <div className={styles.remainingBalance}>
+                      Remaining: ${formatCurrency(payment.remainingBalance)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* Always visible save action button at the bottom */}
           <div className={styles.formActions}>
             <button
@@ -1141,7 +1528,7 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
             <button
               type="button"
               className={styles.submitButton}
-              disabled={loading || !areBasicFieldsValid()}
+              disabled={loading || (!areBasicFieldsValid() && activeTab !== 'payment')}
               onClick={async (e) => {
                 // When editing an existing student in the basic info tab, use the same direct update logic
                 if (student && activeTab === 'basic') {
@@ -1182,10 +1569,20 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
                       phone: cleanedFormData.phone || undefined,
                       campus: cleanedFormData.campus || undefined,
                       practicalLocation: cleanedFormData.campus === 'hybrid' ? cleanedFormData.practicalLocation : undefined,
-                      location: formattedAddress || undefined
+                      location: formattedAddress || undefined,
+                      paymentProfile: {
+                        totalCost: cleanedFormData.paymentProfile.totalCost || 0,
+                        downPayment: cleanedFormData.paymentProfile.downPayment || 0,
+                        amountFinanced: cleanedFormData.paymentProfile.amountFinanced || 0,
+                        paymentFrequency: cleanedFormData.paymentProfile.paymentFrequency,
+                        totalPayments: cleanedFormData.paymentProfile.totalPayments || 0,
+                        paymentAmount: cleanedFormData.paymentProfile.paymentAmount || 0,
+                        paymentDates: cleanedFormData.paymentProfile.paymentDates,
+                        paymentHistory: cleanedFormData.paymentProfile.paymentHistory
+                      }
                     };
                     
-                    console.log('Submitting update via main button:', updateData);
+                    console.log('Directly updating student with data:', updateData);
                     
                     const result = await studentsApi.update(student.id, updateData);
                     console.log('Update successful:', result);

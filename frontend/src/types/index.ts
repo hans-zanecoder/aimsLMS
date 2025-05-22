@@ -25,6 +25,20 @@ export interface Student {
   progress: number;
   campus?: string;
   practicalLocation?: string;
+  paymentProfile?: {
+    totalCost: number;
+    downPayment: number;
+    amountFinanced: number;
+    paymentFrequency: 'weekly' | 'monthly';
+    totalPayments: number;
+    paymentAmount: number;
+    paymentDates: string[];
+    paymentHistory: {
+      amount: number;
+      date: string;
+      remainingBalance: number;
+    }[];
+  };
 }
 
 export interface CourseInfo {

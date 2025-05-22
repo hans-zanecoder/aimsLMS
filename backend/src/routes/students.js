@@ -86,7 +86,17 @@ router.get('/:id', auth, async (req, res) => {
         title: course.title
       })),
       status: student.status,
-      progress: student.progress
+      progress: student.progress,
+      paymentProfile: student.paymentProfile || {
+        totalCost: 0,
+        downPayment: 0,
+        amountFinanced: 0,
+        paymentFrequency: 'monthly',
+        totalPayments: 0,
+        paymentAmount: 0,
+        paymentDates: [],
+        paymentHistory: []
+      }
     };
 
     res.json(formattedStudent);
@@ -196,7 +206,17 @@ router.post('/',
         coursesEnrolled: 0,
         coursesList: [],
         status: student.status,
-        progress: student.progress
+        progress: student.progress,
+        paymentProfile: student.paymentProfile || {
+          totalCost: 0,
+          downPayment: 0,
+          amountFinanced: 0,
+          paymentFrequency: 'monthly',
+          totalPayments: 0,
+          paymentAmount: 0,
+          paymentDates: [],
+          paymentHistory: []
+        }
       };
 
       res.status(201).json(formattedStudent);
@@ -229,6 +249,15 @@ router.put('/:id',
 
       // Update student fields
       Object.assign(student, req.validatedData);
+      
+      // Special handling for payment profile to ensure it's properly updated
+      if (req.validatedData.paymentProfile) {
+        student.paymentProfile = {
+          ...student.paymentProfile,
+          ...req.validatedData.paymentProfile
+        };
+      }
+      
       await student.save();
 
       // Update associated user fields if provided
@@ -256,7 +285,17 @@ router.put('/:id',
         enrollmentDate: student.enrollmentDate,
         coursesEnrolled: student.coursesEnrolled.length,
         status: student.status,
-        progress: student.progress
+        progress: student.progress,
+        paymentProfile: student.paymentProfile || {
+          totalCost: 0,
+          downPayment: 0,
+          amountFinanced: 0,
+          paymentFrequency: 'monthly',
+          totalPayments: 0,
+          paymentAmount: 0,
+          paymentDates: [],
+          paymentHistory: []
+        }
       };
 
       res.json(formattedStudent);
