@@ -475,6 +475,8 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
         // Create new student
         studentData = await studentsApi.create({
           email: cleanedFormData.email,
+          firstName: cleanedFormData.firstName,
+          lastName: cleanedFormData.lastName,
           name: `${cleanedFormData.firstName} ${cleanedFormData.lastName}`,
           location: formattedAddress || undefined,
           phone: cleanedFormData.phone,
@@ -714,8 +716,11 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
     setFormData(prev => {
       const newPaymentProfile = { ...prev.paymentProfile }
       const amountFinanced = newPaymentProfile.amountFinanced ?? 0
-      const remainingBalance = amountFinanced - amount
-      
+
+      // Calculate total paid so far (including this new payment)
+      const totalPaid = (newPaymentProfile.paymentHistory?.reduce((sum, p) => sum + p.amount, 0) || 0) + amount
+      const remainingBalance = amountFinanced - totalPaid
+
       // Add payment to history
       newPaymentProfile.paymentHistory = [
         ...newPaymentProfile.paymentHistory,
@@ -736,6 +741,37 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
       }
     })
   }
+
+  // Add this helper function near the top of the component:
+  const formatLocalDate = (dateString: string) => {
+    if (!dateString) return '';
+    try {
+      // Split the date string into parts
+      const parts = dateString.split(/[T/-]/);
+      if (parts.length < 3) return dateString;
+      
+      // Get the date parts
+      let year, month, day;
+      
+      // Handle different date formats
+      if (parts[0].length === 4) {
+        // YYYY-MM-DD format
+        [year, month, day] = parts;
+      } else {
+        // MM/DD/YYYY format
+        [month, day, year] = parts;
+      }
+      
+      // Ensure month and day are padded with zeros
+      month = month.padStart(2, '0');
+      day = day.padStart(2, '0');
+      
+      return `${month}/${day}/${year}`;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString;
+    }
+  };
 
   return (
     <div className={styles.modalOverlay}>
@@ -1487,7 +1523,7 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
                   <div key={index} className={styles.paymentHistoryItem}>
                     <div className={styles.paymentInfo}>
                       <span className={styles.paymentDate}>
-                        {new Date(payment.date).toLocaleDateString()}
+                        {formatLocalDate(payment.date)}
                       </span>
                       <span className={styles.paymentAmount}>
                         ${formatCurrency(payment.amount)}
