@@ -57,10 +57,15 @@ jobs:
           # Create an array to store env vars for Cloud Run
           declare -a ENV_VARS_ARRAY=()
           
+          echo "Backend environment variables (keys only):"
+          
           # Process each environment variable
           while IFS='=' read -r key value; do
-            # Skip empty lines and comments
-            [[ -z "$key" || "$key" == \#* ]] && continue
+            # Skip empty lines, comments, and reserved env vars
+            [[ -z "$key" || "$key" == \#* || "$key" == "PORT" ]] && continue
+            
+            # Display the key (not the value)
+            echo "  - $key: [value masked]"
             
             # Mask sensitive values in GitHub Actions logs
             echo "::add-mask::$value"
@@ -75,6 +80,9 @@ jobs:
           
           # Save for later steps
           echo "env_vars_string=${ENV_VARS_STRING}" >> $GITHUB_OUTPUT
+          
+          # Display total count of environment variables
+          echo "Total backend environment variables: ${#ENV_VARS_ARRAY[@]}"
 
       - name: Fetch frontend environment variables
         id: frontend-secrets
@@ -90,10 +98,15 @@ jobs:
           # Create an array to store env vars for Cloud Run
           declare -a ENV_VARS_ARRAY=()
           
+          echo "Frontend environment variables (keys only):"
+          
           # Process each environment variable
           while IFS='=' read -r key value; do
-            # Skip empty lines and comments
-            [[ -z "$key" || "$key" == \#* ]] && continue
+            # Skip empty lines, comments, and reserved env vars
+            [[ -z "$key" || "$key" == \#* || "$key" == "PORT" ]] && continue
+            
+            # Display the key (not the value)
+            echo "  - $key: [value masked]"
             
             # Mask sensitive values in GitHub Actions logs
             echo "::add-mask::$value"
@@ -108,6 +121,9 @@ jobs:
           
           # Save for later steps
           echo "env_vars_string=${ENV_VARS_STRING}" >> $GITHUB_OUTPUT
+          
+          # Display total count of environment variables
+          echo "Total frontend environment variables: ${#ENV_VARS_ARRAY[@]}"
 
       - name: Configure Docker for Artifact Registry
         run: |
@@ -289,6 +305,9 @@ jobs:
           echo "Starting health check for frontend service"
           echo "Service URL: $SERVICE_URL"
 
+          # Health check URL - no change needed as the path is already correct
+          HEALTH_CHECK_URL="${SERVICE_URL}/api/health"
+
           # Initial wait for service to initialize
           echo "Waiting 10 seconds for service to initialize..."
           sleep 10
@@ -303,7 +322,7 @@ jobs:
             echo "Attempt $RETRY_COUNT of $MAX_RETRIES"
             
             # Get full response for debugging
-            RESPONSE=$(curl -s -w "\n%{http_code}" "$SERVICE_URL")
+            RESPONSE=$(curl -s -w "\n%{http_code}" "$HEALTH_CHECK_URL")
             STATUS_CODE=$(echo "$RESPONSE" | tail -n1)
             
             echo "Response Status Code: $STATUS_CODE"
