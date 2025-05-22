@@ -13,7 +13,7 @@ env:
   ARTIFACT_REGISTRY: us-west1-docker.pkg.dev/allure-ima/aima-lms
   SERVICE_ACCOUNT: 782549404678-compute@developer.gserviceaccount.com
   FRONTEND_ENV_SECRET_NAME: aima-lms-frontend
-  BACKEND_ENV_SECRET_NAME: aima-lms-backend
+  BACKEND_ENV_SECRET_NAME: aims-lms-backend
 
 jobs:
   deploy:
