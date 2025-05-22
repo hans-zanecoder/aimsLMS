@@ -2,9 +2,13 @@ FROM node:18-slim
 
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy package files
 COPY package*.json ./
-RUN npm install --production
+
+# Install all dependencies (including devDependencies)
+# This is important because mongodb-memory-server is in devDependencies
+# but is used in the production code for fallback
+RUN npm install
 
 # Copy application code
 COPY . .
@@ -13,8 +17,11 @@ COPY . .
 RUN mkdir -p public/uploads
 
 # Expose the port the app runs on
-EXPOSE 5000
+EXPOSE 8080
+
+# Set environment variable for PORT
+ENV PORT=8080
 
 # Command to run the application
-CMD ["npm", "start"]
+CMD ["node", "src/index.js"]
 
