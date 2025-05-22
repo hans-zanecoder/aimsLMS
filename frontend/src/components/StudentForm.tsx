@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Student, User, CourseBasic } from '@/types'
 import { studentsApi, coursesApi } from '@/utils/api'
+import { ApiError } from '@/utils/api'
 import styles from './StudentForm.module.css'
 import { X, User as UserIcon, Mail, Phone, MapPin, Calendar, BookOpen, Check, ChevronRight, Search, Save, Plus, Home, Building, GraduationCap, XCircle } from 'lucide-react'
 
@@ -86,6 +87,7 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
   const [loading, setLoading] = useState(false)
   const [loadingCourses, setLoadingCourses] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({})
   const [activeTab, setActiveTab] = useState('basic') // 'basic', 'enrollment'
   const [availableCourses, setAvailableCourses] = useState<CourseBasic[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -131,7 +133,8 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
 
   // Handle error dismissal
   const dismissError = () => {
-    setError(null);
+    setError(null)
+    setValidationErrors({})
   };
 
   // If student is provided, we're in edit mode
@@ -247,7 +250,15 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
     setLoadingCourses(true)
     try {
       const courses = await coursesApi.getAll({ status: 'Published' })
-      setAvailableCourses(courses)
+      // Convert Course[] to CourseBasic[] by mapping the required fields
+      const basicCourses: CourseBasic[] = courses.map(course => ({
+        id: course._id,
+        title: course.title,
+        status: course.status,
+        category: course.category,
+        level: course.level
+      }))
+      setAvailableCourses(basicCourses)
     } catch (error) {
       console.error('Error fetching courses:', error)
     } finally {
@@ -426,8 +437,7 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
         // Create new student
         studentData = await studentsApi.create({
           email: cleanedFormData.email,
-          firstName: cleanedFormData.firstName,
-          lastName: cleanedFormData.lastName,
+          name: `${cleanedFormData.firstName} ${cleanedFormData.lastName}`,
           location: formattedAddress || undefined,
           phone: cleanedFormData.phone,
           campus: cleanedFormData.campus,
@@ -458,7 +468,27 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
       onClose()
     } catch (error) {
       console.error('Error saving student:', error)
-      setError(error instanceof Error ? error.message : 'Failed to save student. Please try again.')
+      if (error instanceof ApiError && error.validationErrors) {
+        // Handle specific validation errors
+        const errorMap: {[key: string]: string} = {};
+        error.validationErrors.forEach(err => {
+          errorMap[err.field] = err.message;
+        });
+        setValidationErrors(errorMap);
+        
+        // Create a user-friendly error message from validation errors
+        const errorFields = Object.keys(errorMap).map((field, index) => {
+          // Convert camelCase to readable format (e.g., "firstName" to "First Name")
+          const readableField = field
+            .replace(/([A-Z])/g, ' $1')
+            .replace(/^./, str => str.toUpperCase());
+          return `${readableField}: ${errorMap[field]}`;
+        }).join(', ');
+        
+        setError(`Please fix the following issues: ${errorFields}`);
+      } else {
+        setError(error instanceof Error ? error.message : 'Failed to save student. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -525,6 +555,11 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
       }
     }
   }, [error]);
+
+  // Helper function to check if a field has validation errors
+  const getFieldError = (fieldName: string) => {
+    return validationErrors[fieldName] || null;
+  }
 
   return (
     <div className={styles.modalOverlay}>
@@ -607,68 +642,79 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
             <div className={styles.formRow}>
               <div className={styles.formGroup}>
                 <label htmlFor="firstName" className={styles.label}>
-                  <UserIcon className="h-4 w-4" />
-                  First Name
+                  First Name <span className={styles.required}>*</span>
                 </label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className={styles.input}
-                  required
-                  placeholder="John"
-                  disabled={student && !identityFieldsEditable}
-                />
+                <div className={styles.inputWrapper}>
+                  <UserIcon className={styles.inputIcon} />
+                  <input
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    className={`${styles.input} ${getFieldError('firstName') ? styles.inputError : ''}`}
+                    required
+                    placeholder="John"
+                    disabled={student && !identityFieldsEditable}
+                  />
+                </div>
+                {getFieldError('firstName') && (
+                  <div className={styles.fieldError}>{getFieldError('firstName')}</div>
+                )}
               </div>
 
               <div className={styles.formGroup}>
                 <label htmlFor="lastName" className={styles.label}>
-                  <UserIcon className="h-4 w-4" />
-                  Last Name
+                  Last Name <span className={styles.required}>*</span>
                 </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className={styles.input}
-                  required
-                  placeholder="Doe"
-                  disabled={student && !identityFieldsEditable}
-                />
+                <div className={styles.inputWrapper}>
+                  <UserIcon className={styles.inputIcon} />
+                  <input
+                    type="text"
+                    id="lastName"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    className={`${styles.input} ${getFieldError('lastName') ? styles.inputError : ''}`}
+                    required
+                    placeholder="Doe"
+                    disabled={student && !identityFieldsEditable}
+                  />
+                </div>
+                {getFieldError('lastName') && (
+                  <div className={styles.fieldError}>{getFieldError('lastName')}</div>
+                )}
               </div>
             </div>
 
             <div className={styles.formGroup}>
               <label htmlFor="email" className={styles.label}>
                 <Mail className="h-4 w-4" />
-                Email
+                Email <span className={styles.required}>*</span>
               </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={styles.input}
-                required
-                placeholder="john.doe@example.com"
-                disabled={student && !identityFieldsEditable}
-              />
-              {student && identityFieldsEditable && (
-                <div className={styles.warningMessage}>
-                  Changing email address will affect the student's login credentials
-                </div>
+              <div className={styles.inputWrapper}>
+                <Mail className={styles.inputIcon} />
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`${styles.input} ${getFieldError('email') ? styles.inputError : ''}`}
+                  required
+                  placeholder="john.doe@example.com"
+                  disabled={student && !identityFieldsEditable}
+                />
+              </div>
+              {getFieldError('email') && (
+                <div className={styles.fieldError}>{getFieldError('email')}</div>
               )}
             </div>
 
             <div className={styles.formGroup}>
               <label htmlFor="phone" className={styles.label}>
                 <Phone className="h-4 w-4" />
-                Phone Number
+                Phone Number <span className={styles.required}>*</span>
               </label>
               <input
                 type="tel"
@@ -707,7 +753,7 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
                     name="streetAddress"
                     value={formData.streetAddress}
                     onChange={handleChange}
-                    className={styles.input}
+                    className={`${styles.input} ${getFieldError('streetAddress') ? styles.inputError : ''}`}
                     placeholder="123 Main St"
                   />
                 </div>
@@ -722,7 +768,7 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
                     name="unit"
                     value={formData.unit}
                     onChange={handleChange}
-                    className={styles.input}
+                    className={`${styles.input} ${getFieldError('unit') ? styles.inputError : ''}`}
                     placeholder="Apt 4B (optional)"
                   />
                 </div>
@@ -739,7 +785,7 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
-                    className={styles.input}
+                    className={`${styles.input} ${getFieldError('city') ? styles.inputError : ''}`}
                     placeholder="Los Angeles"
                   />
                 </div>
@@ -753,7 +799,7 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
                     name="state"
                     value={formData.state}
                     onChange={handleChange}
-                    className={styles.select}
+                    className={`${styles.select} ${getFieldError('state') ? styles.inputError : ''}`}
                   >
                     {US_STATES.map(state => (
                       <option key={state.value} value={state.value}>
@@ -802,7 +848,7 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  className={styles.select}
+                  className={`${styles.select} ${getFieldError('status') ? styles.inputError : ''}`}
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
@@ -918,6 +964,20 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
                 </div>
               </div>
             )}
+
+            {/* Show validation errors summary if any */}
+            {Object.keys(validationErrors).length > 0 && (
+              <div className={styles.validationErrorsSummary}>
+                <h4>Please fix the following errors:</h4>
+                <ul>
+                  {Object.keys(validationErrors).map((field, index) => (
+                    <li key={`validation-error-${field}-${index}`}>
+                      {field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}: {validationErrors[field]}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Enrollment Tab */}
@@ -941,7 +1001,7 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
                   name="campus"
                   value={formData.campus}
                   onChange={handleChange}
-                  className={styles.select}
+                  className={`${styles.select} ${getFieldError('campus') ? styles.inputError : ''}`}
                   required
                 >
                   {CAMPUS_OPTIONS.map(option => (
@@ -963,7 +1023,7 @@ export default function StudentForm({ onClose, onSuccess, student, title = 'Add 
                     name="practicalLocation"
                     value={formData.practicalLocation}
                     onChange={handleChange}
-                    className={styles.select}
+                    className={`${styles.select} ${getFieldError('practicalLocation') ? styles.inputError : ''}`}
                     required
                   >
                     {PRACTICAL_LOCATION_OPTIONS.map(option => (

@@ -1,0 +1,26 @@
+{
+  "title": "Intro to Makeup Artistry - South Gate Campus",
+  "description": "Introduction to makeup artistry covering beauty fundamentals, skin preparation, and basic techniques. Classes held at our South Gate location for aspiring makeup artists.",
+  "instructor": "682f151a99883ebb32c7f8b3",
+  "programId": "67dfdf45a84173c3fc41c5eb",
+  "campus": "South Gate",
+  "category": "Intro to Makeup Artistry",
+  "status": "Published",
+  "level": "Beginner",
+  "learningObjectives": [
+    "Master makeup fundamentals",
+    "Learn color theory and skin tone matching",
+    "Practice basic beauty techniques",
+    "Build a starter portfolio"
+  ],
+  "tags": ["makeup", "beginner", "beauty", "fundamentals"],
+  "isFeatured": true,
+  "startDate": "2025-07-26",
+  "endDate": "2025-08-30",
+  "classDays": ["Saturday"],
+  "classStartTime": "10:00 AM",
+  "classEndTime": "2:00 PM",
+  "totalWeeks": 6,
+  "hoursPerWeek": 4,
+  "duration": 1440
+} 

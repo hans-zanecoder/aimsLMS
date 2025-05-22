@@ -1,0 +1,1 @@
+db.courses.updateOne({_id: ObjectId("682f2634b31ad3d56eb6a73a")}, {$set: {startDate: new Date("2025-02-10"), endDate: new Date("2025-03-17"), totalWeeks: 6, hoursPerWeek: 4, classDays: ["Saturday"], classStartTime: "10:00 AM", classEndTime: "2:00 PM"}})

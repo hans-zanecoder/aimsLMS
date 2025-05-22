@@ -412,4 +412,368 @@
     height: 95vh;
     max-height: 95vh;
   }
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: var(--background);
+  color: var(--text);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionButton:hover {
+  background-color: var(--hover);
+  border-color: var(--primary);
+}
+
+/* Success and error messages */
+.successMessage, .errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.successMessage {
+  background-color: var(--success-bg);
+  color: var(--success);
+}
+
+.errorMessage {
+  background-color: var(--error-bg);
+  color: var(--error);
+}
+
+/* Course assignment styles */
+.assignCoursesContainer {
+  background-color: var(--background);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+}
+
+.searchInputWrapper {
+  display: flex;
+  align-items: center;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  padding: 4px 8px;
+}
+
+.courseSelection {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.courseOption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.courseOption:hover {
+  background-color: var(--hover);
+}
+
+.selectedCourse {
+  background-color: var(--primary-light);
+  border-color: var(--primary);
+}
+
+.courseOptionInfo {
+  flex: 1;
+}
+
+.courseOptionTitle {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.courseOptionMeta {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.courseOptionCheck {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+
+.emptySearchState {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.assignButtonContainer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.cancelAssignButton, .assignButton {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.cancelAssignButton {
+  background-color: var(--background);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.cancelAssignButton:hover {
+  background-color: var(--hover);
+}
+
+.assignButton {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+}
+
+.assignButton:hover {
+  background-color: var(--primary-dark);
+}
+
+.assignButton:disabled {
+  background-color: var(--disabled);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Enrolled courses styles */
+.enrolledCoursesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.enrolledCourseCard {
+  display: flex;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background-color: var(--card-bg);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.enrolledCourseCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.enrolledCourseImage {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.enrolledCourseImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.courseImagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--hover);
+  color: var(--text-secondary);
+}
+
+.courseStatus {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.published {
+  background-color: var(--success-bg);
+  color: var(--success);
+}
+
+.draft {
+  background-color: var(--warning-bg);
+  color: var(--warning);
+}
+
+.archived {
+  background-color: var(--error-bg);
+  color: var(--error);
+}
+
+.enrolledCourseInfo {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.enrolledCourseTitle {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.enrolledCourseMeta {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.courseCategory, .courseLevel {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: var(--hover);
+}
+
+.courseDates {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.courseProgress {
+  margin-top: auto;
+}
+
+.progressLabel {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-right: 8px;
+}
+
+.enrolledCourseActions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-left: 1px solid var(--border);
+}
+
+.viewCourseButton, .unenrollButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.viewCourseButton {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  border: none;
+}
+
+.viewCourseButton:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+.unenrollButton {
+  background-color: var(--error-light);
+  color: var(--error);
+  border: none;
+}
+
+.unenrollButton:hover {
+  background-color: var(--error);
+  color: white;
+}
+
+.simpleEnrolledCourse {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.simpleEnrolledCourseInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.emptyStateButton {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.emptyStateButton:hover {
+  background-color: var(--primary-dark);
 } 

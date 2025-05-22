@@ -518,6 +518,63 @@
   background-color: rgba(220, 38, 38, 0.1);
 }
 
+/* Error styles */
+.errorContainer {
+  background-color: var(--error-bg);
+  border: 1px solid var(--error-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin: 1rem;
+  color: var(--error);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.errorMessage {
+  flex: 1;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.errorIcon {
+  flex-shrink: 0;
+}
+
+.errorDismiss {
+  background: none;
+  border: none;
+  color: var(--error);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Field-specific error styles */
+.fieldError {
+  color: var(--error);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.inputError {
+  border-color: var(--error) !important;
+  background-color: var(--error-bg-light) !important;
+}
+
+.inputError:focus {
+  border-color: var(--error) !important;
+  box-shadow: 0 0 0 2px var(--error-bg) !important;
+}
+
 /* Course Enrollment Styles */
 .enrollmentHeader {
   margin-bottom: 16px;

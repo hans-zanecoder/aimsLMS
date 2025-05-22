@@ -4,12 +4,17 @@ const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const path = require('path');
 const { logger, loggerMiddleware } = require('./utils/logger');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const authRoutes = require('./routes/auth');
 const studentRoutes = require('./routes/students');
 const courseRoutes = require('./routes/courses');
+const programRoutes = require('./routes/programs');
 const User = require('./models/User');
+const instructorsRouter = require('./routes/instructors');
+const userSettingsRouter = require('./routes/userSettings');
+const booksRouter = require('./routes/books');
 
 const app = express();
 
@@ -17,6 +22,11 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(loggerMiddleware);
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, '..', 'public')));
+// For compatibility with existing code still using /uploads path
+app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'uploads')));
 
 // Global rate limiter
 app.use(apiLimiter);
@@ -27,9 +37,15 @@ logger.info(`CORS configured for origin: ${corsOrigin}`);
 app.use(cors({
   origin: corsOrigin,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Set-Cookie'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
+
+// Make sure CORS is applied before any routes
+app.options('*', cors());
 
 // Global error handler
 app.use((err, req, res, next) => {
@@ -62,6 +78,10 @@ app.use((err, req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/programs', programRoutes);
+app.use('/api/instructors', instructorsRouter);
+app.use('/api/user', userSettingsRouter);
+app.use('/api/books', booksRouter);
 
 // Create initial users if they don't exist
 async function createInitialUsers() {

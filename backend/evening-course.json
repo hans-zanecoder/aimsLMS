@@ -1,0 +1,25 @@
+{
+  "title": "Intro to Makeup Artistry - Evening Class (Santa Ana)",
+  "description": "Evening session of our intro to makeup artistry program covering beauty, bridal, and basic makeup techniques. Perfect for working professionals looking to start a career in makeup artistry.",
+  "instructor": "682f151a99883ebb32c7f8b3",
+  "programId": "67dfdf45a84173c3fc41c5eb",
+  "campus": "Santa Ana",
+  "category": "Intro to Makeup Artistry",
+  "status": "Published",
+  "level": "Beginner",
+  "learningObjectives": [
+    "Learn foundational makeup techniques",
+    "Develop color theory knowledge",
+    "Practice basic beauty and bridal makeup applications",
+    "Build a starter portfolio"
+  ],
+  "tags": ["makeup", "evening", "beginner", "beauty"],
+  "isFeatured": true,
+  "startDate": "2025-06-09",
+  "endDate": "2025-07-14",
+  "classDays": ["Monday"],
+  "classStartTime": "17:30",
+  "classEndTime": "21:30",
+  "totalWeeks": 6,
+  "hoursPerWeek": 4
+} 

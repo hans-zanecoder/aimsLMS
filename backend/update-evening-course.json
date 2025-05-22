@@ -1,0 +1,12 @@
+{
+  "programId": "67dfdf45a84173c3fc41c5eb",
+  "campus": "Santa Ana",
+  "startDate": "2025-06-09",
+  "endDate": "2025-07-14",
+  "classDays": ["Monday"],
+  "classStartTime": "17:30",
+  "classEndTime": "21:30",
+  "totalWeeks": 6,
+  "hoursPerWeek": 4,
+  "duration": 1440
+} 

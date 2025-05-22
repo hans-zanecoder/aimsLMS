@@ -3,7 +3,16 @@ const User = require('../models/User');
 
 const auth = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    // Try to get token from cookie first
+    let token = req.cookies.token;
+    
+    // If no cookie token, try Authorization header (for API clients)
+    if (!token && req.headers.authorization) {
+      const authHeader = req.headers.authorization;
+      if (authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
     
     if (!token) {
       return res.status(401).json({ message: 'Authentication required' });

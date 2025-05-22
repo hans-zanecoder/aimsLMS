@@ -21,7 +21,7 @@ A modern, scalable Learning Management System built with Next.js and Nest.js.
 
 ### Infrastructure
 - Docker & Docker Compose
-- Google Cloud Platform (GCP)
+- Google Cloud                                                       Platform (GCP)
 - Cloud Run for deployment
 - Cloud Storage for media
 - Cloud SQL for PostgreSQL
@@ -108,6 +108,10 @@ STORAGE_BUCKET=your_gcp_bucket
 ## Features
 
 - 🔐 Secure authentication with Google Identity Platform
+- 👩‍🏫 Comprehensive instructor management
+  - Profile management with photo uploads
+  - Start date tracking
+  - Course assignments
 - 📚 Course management and enrollment
 - 📝 Assignment creation and submission
 - 📊 Progress tracking and analytics

@@ -4,9 +4,21 @@ const Joi = require('joi');
 const schemas = {
   createStudent: Joi.object({
     userId: Joi.string().hex().length(24).optional(),
-    email: Joi.string().email().when('userId', { is: undefined, then: Joi.required() }),
-    firstName: Joi.string().when('userId', { is: undefined, then: Joi.required() }),
-    lastName: Joi.string().when('userId', { is: undefined, then: Joi.required() }),
+    email: Joi.string().email().message('Please enter a valid email address')
+      .when('userId', { 
+        is: undefined, 
+        then: Joi.required() 
+      }),
+    firstName: Joi.string()
+      .when('userId', { 
+        is: undefined, 
+        then: Joi.required() 
+      }),
+    lastName: Joi.string()
+      .when('userId', { 
+        is: undefined, 
+        then: Joi.required() 
+      }),
     phone: Joi.string().optional(),
     location: Joi.string().optional(),
     department: Joi.string().optional(),
@@ -17,6 +29,7 @@ const schemas = {
   updateStudent: Joi.object({
     firstName: Joi.string(),
     lastName: Joi.string(),
+    email: Joi.string().email().message('Please enter a valid email address'),
     status: Joi.string().valid('Active', 'Pending', 'Inactive'),
     phone: Joi.string(),
     location: Joi.string(),
@@ -24,7 +37,7 @@ const schemas = {
   }).min(1),
 
   login: Joi.object({
-    email: Joi.string().email().required(),
+    email: Joi.string().email().message('Please enter a valid email address').required(),
     password: Joi.string().required()
   })
 };
@@ -51,8 +64,8 @@ const validate = (schemaName) => {
           status: 'error',
           message: 'Validation failed',
           errors: error.details.map(detail => ({
-            field: detail.context.key,
-            message: detail.message
+            field: detail.path[0],
+            message: detail.message.replace(/['"]/g, '')
           }))
         });
       }
