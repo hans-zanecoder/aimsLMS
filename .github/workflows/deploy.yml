@@ -245,7 +245,7 @@ jobs:
         if: steps.test-backend.outputs.test_success == 'true'
         run: |
           # Add backend URL to frontend environment
-          echo "NEXT_PUBLIC_API_URL=${{ steps.deploy-backend.outputs.backend_url }}" >> frontend/.env.local
+          echo "NEXT_PUBLIC_API_URL=${{ steps.deploy-backend.outputs.backend_url }}/api" >> frontend/.env.local
           
           docker build \
             -t ${{ env.ARTIFACT_REGISTRY }}/${{ env.FRONTEND_SERVICE_NAME }}:${{ steps.timestamp.outputs.timestamp }} \
@@ -258,7 +258,7 @@ jobs:
         id: deploy-frontend
         run: |
           # Use the processed environment variables string from previous step
-          ENV_VARS="${{ steps.frontend-secrets.outputs.env_vars_string }},NEXT_PUBLIC_API_URL=${{ steps.deploy-backend.outputs.backend_url }}"
+          ENV_VARS="${{ steps.frontend-secrets.outputs.env_vars_string }},NEXT_PUBLIC_API_URL=${{ steps.deploy-backend.outputs.backend_url }}/api"
           
           # Check if service exists
           if gcloud run services describe ${{ env.FRONTEND_SERVICE_NAME }} --region ${{ env.REGION }} 2>/dev/null; then
