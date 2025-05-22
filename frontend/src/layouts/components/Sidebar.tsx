@@ -10,13 +10,12 @@ interface SidebarProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Courses', href: '/courses', icon: BookOpen },
-  { name: 'Students', href: '/students', icon: Users },
-  { name: 'Schedule', href: '/schedule', icon: Calendar },
-  { name: 'Analytics', href: '/analytics', icon: BarChart },
-  { name: 'Admin', href: '/admin', icon: ShieldCheck },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Dashboard', href: '/instructor', icon: Home },
+  { name: 'Courses', href: '/instructor/courses', icon: BookOpen },
+  { name: 'Students', href: '/instructor/students', icon: Users },
+  { name: 'Schedule', href: '/instructor/schedule', icon: Calendar },
+  { name: 'Analytics', href: '/instructor/analytics', icon: BarChart },
+  { name: 'Settings', href: '/instructor/settings', icon: Settings },
 ]
 
 // Storage key for the last active tab

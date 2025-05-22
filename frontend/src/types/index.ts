@@ -8,6 +8,7 @@ export interface User {
   location?: string;
   department?: string;
   joinDate?: string;
+  createdAt: string;
 }
 
 export interface Student {

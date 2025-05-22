@@ -5,7 +5,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
-const { logger, loggerMiddleware } = require('./utils/logger');
+const { info: logInfo, error: logError } = require('./utils/logger');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const authRoutes = require('./routes/auth');
 const studentRoutes = require('./routes/students');
@@ -22,7 +22,7 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
-app.use(loggerMiddleware);
+app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -33,24 +33,46 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'uploads
 app.use(apiLimiter);
 
 // CORS configuration
-const corsOrigin = process.env.FRONTEND_URL || 'http://localhost:3000';
-logger.info(`CORS configured for origin: ${corsOrigin}`);
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+logInfo(`CORS configured for origin: ${corsOrigin}`);
+
+// Configure CORS with more detailed options
 app.use(cors({
-  origin: corsOrigin,
+  origin: [corsOrigin, 'http://localhost:3000', 'http://localhost:3001'], // Allow both ports
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With', 
+    'Accept', 
+    'Origin',
+    'Access-Control-Request-Method',
+    'Access-Control-Request-Headers'
+  ],
   exposedHeaders: ['Set-Cookie'],
   preflightContinue: false,
   optionsSuccessStatus: 204
 }));
 
-// Make sure CORS is applied before any routes
+// Make sure CORS is handled before routes
 app.options('*', cors());
+
+// Add headers middleware for additional CORS support
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin === 'http://localhost:3000' || origin === 'http://localhost:3001') {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  next();
+});
 
 // Global error handler
 app.use((err, req, res, next) => {
-  logger.error(err.stack);
+  logError('Server error:', err);
   
   if (err.name === 'ValidationError') {
     return res.status(400).json({

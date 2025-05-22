@@ -17,6 +17,10 @@
   --status-warning-color: #F59E0B;
   --status-error-bg: rgba(239, 68, 68, 0.1);
   --status-error-color: #EF4444;
+  --primary-color: #3b82f6;
+  --primary-color-dark: #2563eb;
+  --badge-bg: #f3f4f6;
+  --badge-text: #4b5563;
 }
 
 .root[data-theme='dark'] {
@@ -37,6 +41,10 @@
   --status-warning-color: #fbbf24;
   --status-error-bg: rgba(239, 68, 68, 0.2);
   --status-error-color: #f87171;
+  --primary-color: #6366f1;
+  --primary-color-dark: #4f46e5;
+  --badge-bg: #374151;
+  --badge-text: #ffffff;
 }
 
 .dashboardContainer {
@@ -797,4 +805,132 @@
   .dangerButton {
     width: 100%;
   }
+}
+
+.programsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.programCard {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+  padding: 1.5rem;
+}
+
+.programCard:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.programCardHeader {
+  margin-bottom: 1.5rem;
+}
+
+.programCardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.programStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.statItem svg {
+  color: var(--primary);
+}
+
+.statInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.statValue {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.viewButton {
+  width: 100%;
+  padding: 0.75rem;
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.viewButton:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Loading, Error, and Empty States */
+.loadingState,
+.errorState,
+.emptyState {
+  text-align: center;
+  padding: 2rem;
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+}
+
+.loadingSpinner {
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--primary);
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.retryButton {
+  margin-top: 1rem;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.retryButton:hover {
+  opacity: 0.9;
 } 

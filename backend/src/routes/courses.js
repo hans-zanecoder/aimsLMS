@@ -4,7 +4,7 @@ const CourseAudit = require('../models/CourseAudit');
 const User = require('../models/User');
 const Student = require('../models/Student');
 const { auth, authorize } = require('../middleware/auth');
-const logger = require('../utils/logger');  // Assuming you have a logger utility
+const { error: logError, info: logInfo, warn: logWarn } = require('../utils/logger');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
@@ -48,7 +48,7 @@ const upload = multer({
 });
 
 // Get all courses
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
     const { status, category, instructor, level, search, featured, sortBy, populate } = req.query;
     
@@ -97,10 +97,11 @@ router.get('/', async (req, res) => {
     // Execute the query
     const courses = await query.select('-modules'); // Exclude detailed content for list view
     
+    logInfo('Successfully fetched all courses');
     res.json(courses);
   } catch (error) {
-    logger.error(`Error fetching courses: ${error.message}`);
-    res.status(500).json({ message: 'Server error' });
+    logError(`Error fetching courses: ${error.message}`);
+    res.status(500).json({ message: 'Error fetching courses' });
   }
 });
 
@@ -116,15 +117,16 @@ router.get('/featured', async (req, res) => {
     .populate('instructorId', 'firstName lastName email')
     .select('-modules');
     
+    logInfo('Successfully fetched featured courses');
     res.json(featuredCourses);
   } catch (error) {
-    logger.error(`Error fetching featured courses: ${error.message}`);
+    logError(`Error fetching featured courses: ${error.message}`);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // Get course by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
     const course = await Course.findById(id)
@@ -151,10 +153,11 @@ router.get('/:id', async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to view this course' });
     }
 
+    logInfo(`Successfully fetched course: ${id}`);
     res.json(course);
   } catch (error) {
-    logger.error(`Error fetching course: ${error.message}`);
-    res.status(500).json({ message: 'Server error' });
+    logError(`Error fetching course: ${error.message}`);
+    res.status(500).json({ message: 'Error fetching course' });
   }
 });
 
@@ -239,7 +242,7 @@ router.post('/', auth, authorize('admin', 'instructor'), upload.single('courseIm
 
     res.status(201).json(course);
   } catch (error) {
-    logger.error(`Error creating course: ${error.message}`);
+    logError(`Error creating course: ${error.message}`);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -334,7 +337,7 @@ router.put('/:id', auth, authorize('admin', 'instructor'), upload.single('course
           await fs.unlink(oldImagePath);
         } catch (error) {
           // Log but don't fail if image deletion fails
-          logger.warn(`Failed to delete old course image: ${error.message}`);
+          logWarn(`Failed to delete old course image: ${error.message}`);
         }
       }
     } else if (req.body.image === '') {
@@ -348,7 +351,7 @@ router.put('/:id', auth, authorize('admin', 'instructor'), upload.single('course
           await fs.unlink(oldImagePath);
         } catch (error) {
           // Log but don't fail if image deletion fails
-          logger.warn(`Failed to delete old course image: ${error.message}`);
+          logWarn(`Failed to delete old course image: ${error.message}`);
         }
       }
     }
@@ -372,7 +375,7 @@ router.put('/:id', auth, authorize('admin', 'instructor'), upload.single('course
     
     res.json(updatedCourse);
   } catch (error) {
-    logger.error(`Error updating course: ${error.message}`);
+    logError(`Error updating course: ${error.message}`);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -401,7 +404,7 @@ router.delete('/:id', auth, authorize('admin'), async (req, res) => {
         await fs.unlink(imagePath);
       } catch (error) {
         // Log but don't fail if image deletion fails
-        logger.warn(`Failed to delete course image: ${error.message}`);
+        logWarn(`Failed to delete course image: ${error.message}`);
       }
     }
     
@@ -417,7 +420,7 @@ router.delete('/:id', auth, authorize('admin'), async (req, res) => {
     
     res.json({ message: 'Course deleted successfully' });
   } catch (error) {
-    logger.error(`Error deleting course: ${error.message}`);
+    logError(`Error deleting course: ${error.message}`);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -441,7 +444,7 @@ router.get('/:id/audit', auth, authorize('admin'), async (req, res) => {
     
     res.json(auditTrail);
   } catch (error) {
-    logger.error(`Error fetching course audit: ${error.message}`);
+    logError(`Error fetching course audit: ${error.message}`);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -472,7 +475,7 @@ router.post('/:id/modules', auth, async (req, res) => {
     await course.save();
     res.json(course);
   } catch (error) {
-    logger.error(`Error adding module: ${error.message}`);
+    logError(`Error adding module: ${error.message}`);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -522,7 +525,7 @@ router.post('/:id/enroll', auth, async (req, res) => {
     
     res.json({ message: 'Successfully enrolled in course', course });
   } catch (error) {
-    logger.error(`Error enrolling in course: ${error.message}`);
+    logError(`Error enrolling in course: ${error.message}`);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -573,7 +576,7 @@ router.post('/:id/reviews', auth, async (req, res) => {
     
     res.json({ message: 'Review added successfully', course });
   } catch (error) {
-    logger.error(`Error adding review: ${error.message}`);
+    logError(`Error adding review: ${error.message}`);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -608,7 +611,7 @@ router.post('/:courseId/modules/:moduleIndex/lessons/:lessonIndex/complete', aut
     
     res.json({ message: 'Lesson marked as completed', course });
   } catch (error) {
-    logger.error(`Error marking lesson as completed: ${error.message}`);
+    logError(`Error marking lesson as completed: ${error.message}`);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -620,8 +623,54 @@ router.get('/categories/list', async (req, res) => {
     const categories = await Course.distinct('category');
     res.json(categories);
   } catch (error) {
-    logger.error(`Error fetching course categories: ${error.message}`);
+    logError(`Error fetching course categories: ${error.message}`);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get enrolled courses for current user
+router.get('/enrolled', auth, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    // Find student record
+    const student = await Student.findOne({ userId });
+    if (!student) {
+      return res.json([]);
+    }
+    
+    // Get enrolled courses with populated instructor info
+    const courses = await Course.find({
+      _id: { $in: student.coursesEnrolled }
+    })
+    .populate('instructorId', 'firstName lastName email')
+    .populate('programId', 'name')
+    .select('-modules'); // Exclude detailed content for list view
+    
+    logInfo(`Successfully fetched enrolled courses for student: ${userId}`);
+    res.json(courses);
+  } catch (error) {
+    logError(`Error fetching enrolled courses: ${error.message}`);
+    res.status(500).json({ message: 'Error fetching enrolled courses' });
+  }
+});
+
+// Get courses taught by instructor
+router.get('/teaching', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'instructor') {
+      return res.status(403).json({ message: 'Access denied. Not an instructor.' });
+    }
+
+    const courses = await Course.find({ 
+      instructorId: req.user._id 
+    }).populate('students', 'firstName lastName email');
+    
+    logInfo(`Successfully fetched courses for instructor: ${req.user._id}`);
+    res.json(courses);
+  } catch (error) {
+    logError(`Error fetching instructor courses: ${error.message}`);
+    res.status(500).json({ message: 'Error fetching instructor courses' });
   }
 });
 

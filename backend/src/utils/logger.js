@@ -1,29 +1,34 @@
 const winston = require('winston');
 const path = require('path');
 
+// Define custom format
+const logFormat = winston.format.combine(
+  winston.format.timestamp(),
+  winston.format.printf(({ timestamp, level, message }) => {
+    return `${timestamp} [${level.toUpperCase()}]: ${message}`;
+  })
+);
+
+// Create logger instance
 const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
-    winston.format.json()
-  ),
+  level: 'info',
+  format: logFormat,
   transports: [
-    // Write all logs to console
+    // Console transport with colors
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),
-        winston.format.simple()
+        logFormat
       )
     }),
-    // Write all error logs to error.log
+    // File transport for errors
     new winston.transports.File({
-      filename: path.join(__dirname, '../../logs/error.log'),
+      filename: path.join(__dirname, '../logs/error.log'),
       level: 'error'
     }),
-    // Write all logs to combined.log
+    // File transport for all logs
     new winston.transports.File({
-      filename: path.join(__dirname, '../../logs/combined.log')
+      filename: path.join(__dirname, '../logs/combined.log')
     })
   ]
 });
@@ -34,17 +39,31 @@ const loggerMiddleware = (req, res, next) => {
 
   res.on('finish', () => {
     const duration = Date.now() - start;
-    logger.info({
+    const logMessage = {
       method: req.method,
       url: req.originalUrl,
       status: res.statusCode,
       duration: `${duration}ms`,
       ip: req.ip,
       userAgent: req.get('user-agent')
-    });
+    };
+    
+    if (res.statusCode >= 400) {
+      logger.error(JSON.stringify(logMessage));
+    } else {
+      logger.info(JSON.stringify(logMessage));
+    }
   });
 
   next();
 };
 
-module.exports = { logger, loggerMiddleware };
+// Export both the logger instance and middleware
+module.exports = {
+  error: logger.error.bind(logger),
+  warn: logger.warn.bind(logger),
+  info: logger.info.bind(logger),
+  http: logger.http.bind(logger),
+  debug: logger.debug.bind(logger),
+  loggerMiddleware
+};

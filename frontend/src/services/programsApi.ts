@@ -8,6 +8,9 @@ export interface Program {
   instructionModes: string[];
   createdAt: string;
   updatedAt: string;
+  bookCount: number;
+  videoCount: number;
+  assignmentCount: number;
 }
 
 export interface CreateProgramData {

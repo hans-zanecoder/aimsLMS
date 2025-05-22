@@ -1,18 +1,51 @@
 const express = require('express');
 const router = express.Router();
 const Program = require('../models/Program');
+const Book = require('../models/Book');
+const Course = require('../models/Course');
 const { auth, authorize } = require('../middleware/auth');
 const { logger } = require('../utils/logger');
 
 /**
  * @route   GET /api/programs
- * @desc    Get all programs
+ * @desc    Get all programs with book counts
  * @access  Public
  */
 router.get('/', async (req, res) => {
   try {
+    // Get all programs
     const programs = await Program.find().sort({ createdAt: -1 });
-    res.json(programs);
+    
+    // Get resource counts for each program
+    const programsWithCounts = await Promise.all(programs.map(async (program) => {
+      const books = await Book.find({ programId: program._id });
+      
+      // Count books and their resources
+      const bookCount = books.length;
+      let videoCount = 0;
+      let assignmentCount = 0;
+
+      books.forEach(book => {
+        // Count embedded videos (if book has embedCode and it's a video)
+        if (book.bookType === 'embed' && book.embedCode && 
+            book.embedCode.toLowerCase().includes('video')) {
+          videoCount++;
+        }
+        // Count additional resources as assignments
+        if (book.additionalResources && Array.isArray(book.additionalResources)) {
+          assignmentCount += book.additionalResources.length;
+        }
+      });
+
+      return {
+        ...program.toObject(),
+        bookCount,
+        videoCount,
+        assignmentCount
+      };
+    }));
+    
+    res.json(programsWithCounts);
   } catch (error) {
     logger.error('Error fetching programs:', error);
     res.status(500).json({ message: 'Failed to fetch programs' });
@@ -21,7 +54,7 @@ router.get('/', async (req, res) => {
 
 /**
  * @route   GET /api/programs/:id
- * @desc    Get a program by ID
+ * @desc    Get a program by ID with book counts
  * @access  Public
  */
 router.get('/:id', async (req, res) => {
@@ -32,7 +65,32 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Program not found' });
     }
     
-    res.json(program);
+    // Get books and count resources
+    const books = await Book.find({ programId: program._id });
+      
+    // Count books and their resources
+    const bookCount = books.length;
+    let videoCount = 0;
+    let assignmentCount = 0;
+
+    books.forEach(book => {
+      // Count embedded videos (if book has embedCode and it's a video)
+      if (book.bookType === 'embed' && book.embedCode && 
+          book.embedCode.toLowerCase().includes('video')) {
+        videoCount++;
+      }
+      // Count additional resources as assignments
+      if (book.additionalResources && Array.isArray(book.additionalResources)) {
+        assignmentCount += book.additionalResources.length;
+      }
+    });
+    
+    res.json({
+      ...program.toObject(),
+      bookCount,
+      videoCount,
+      assignmentCount
+    });
   } catch (error) {
     logger.error(`Error fetching program ${req.params.id}:`, error);
     res.status(500).json({ message: 'Failed to fetch program' });

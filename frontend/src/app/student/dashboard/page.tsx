@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import programsApi, { Program } from '@/services/programsApi';
 import {
   BookOpen,
   GraduationCap,
@@ -15,7 +16,11 @@ import {
   LayoutDashboard,
   Menu,
   X,
-  Bell
+  Bell,
+  Book,
+  Video,
+  FileText,
+  Folder
 } from 'lucide-react';
 import styles from './dashboard.module.css';
 import StudentBooks from '@/components/StudentBooks';
@@ -29,6 +34,25 @@ export default function StudentDashboard() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [theme, setTheme] = useState('light');
   const userMenuRef = React.useRef<HTMLDivElement | null>(null);
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPrograms = async () => {
+      try {
+        const data = await programsApi.getAll();
+        setPrograms(data);
+        setIsLoading(false);
+      } catch (err) {
+        setError('Failed to fetch programs');
+        setIsLoading(false);
+        console.error('Error fetching programs:', err);
+      }
+    };
+
+    fetchPrograms();
+  }, []);
 
   // Click outside handler
   useEffect(() => {
@@ -237,53 +261,83 @@ export default function StudentDashboard() {
                 </div>
                 
                 <div className={styles.sectionContent}>
-                  <h2 className={styles.sectionTitle}>Recent Courses</h2>
-                  <div className={styles.coursesGrid}>
-                    {/* Example course cards */}
-                    <div className={styles.courseCard}>
-                      <div className={styles.courseCardHeader}>
-                        <h3 className={styles.courseCardTitle}>Makeup Artistry Basics</h3>
-                        <div className={`${styles.courseCardBadge} ${styles.active}`}>In Progress</div>
-                      </div>
-                      <div className={styles.courseCardContent}>
-                        <div className={styles.courseCardInfo}>
-                          <div className={styles.courseCardInstructor}>Instructor: Sarah Anderson</div>
-                          <div className={styles.courseCardProgress}>
-                            <div className={styles.progressLabel}>
-                              <span>Progress</span>
-                              <span>75%</span>
+                  <h2 className={styles.sectionTitle}>Available Programs</h2>
+                  {isLoading ? (
+                    <div className={styles.loadingState}>
+                      <div className={styles.loadingSpinner} />
+                      <p>Loading programs...</p>
+                    </div>
+                  ) : error ? (
+                    <div className={styles.errorState}>
+                      <p>{error}</p>
+                      <button 
+                        className={styles.retryButton}
+                        onClick={() => {
+                          setIsLoading(true);
+                          setError(null);
+                          programsApi.getAll()
+                            .then(data => {
+                              setPrograms(data);
+                              setIsLoading(false);
+                            })
+                            .catch(err => {
+                              setError('Failed to fetch programs');
+                              setIsLoading(false);
+                              console.error('Error fetching programs:', err);
+                            });
+                        }}
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  ) : programs.length === 0 ? (
+                    <div className={styles.emptyState}>
+                      <GraduationCap className="h-12 w-12 text-gray-400" />
+                      <h3>No programs available</h3>
+                      <p>Check back later for new programs</p>
+                    </div>
+                  ) : (
+                    <div className={styles.programsGrid}>
+                      {programs.map((program) => (
+                        <div key={program._id} className={styles.programCard}>
+                          <div className={styles.programCardHeader}>
+                            <h3 className={styles.programCardTitle}>{program.name}</h3>
+                          </div>
+                          <div className={styles.programCardContent}>
+                            <div className={styles.programStats}>
+                              <div className={styles.statItem}>
+                                <Book className="h-5 w-5" />
+                                <div className={styles.statInfo}>
+                                  <div className={styles.statLabel}>Books</div>
+                                  <div className={styles.statValue}>{program.bookCount}</div>
+                                </div>
+                              </div>
+                              <div className={styles.statItem}>
+                                <Video className="h-5 w-5" />
+                                <div className={styles.statInfo}>
+                                  <div className={styles.statLabel}>Videos</div>
+                                  <div className={styles.statValue}>{program.videoCount}</div>
+                                </div>
+                              </div>
+                              <div className={styles.statItem}>
+                                <FileText className="h-5 w-5" />
+                                <div className={styles.statInfo}>
+                                  <div className={styles.statLabel}>Assignments</div>
+                                  <div className={styles.statValue}>{program.assignmentCount}</div>
+                                </div>
+                              </div>
                             </div>
-                            <div className={styles.progressBar}>
-                              <div className={styles.progressFill} style={{ width: '75%' }}></div>
-                            </div>
+                            <button 
+                              className={styles.viewButton}
+                              onClick={() => router.push(`/books?program=${program._id}`)}
+                            >
+                              VIEW
+                            </button>
                           </div>
                         </div>
-                        <button className={styles.courseCardButton}>Continue</button>
-                      </div>
+                      ))}
                     </div>
-                    
-                    <div className={styles.courseCard}>
-                      <div className={styles.courseCardHeader}>
-                        <h3 className={styles.courseCardTitle}>Advanced Color Theory</h3>
-                        <div className={`${styles.courseCardBadge} ${styles.warning}`}>Just Started</div>
-                      </div>
-                      <div className={styles.courseCardContent}>
-                        <div className={styles.courseCardInfo}>
-                          <div className={styles.courseCardInstructor}>Instructor: Michael Chen</div>
-                          <div className={styles.courseCardProgress}>
-                            <div className={styles.progressLabel}>
-                              <span>Progress</span>
-                              <span>15%</span>
-                            </div>
-                            <div className={styles.progressBar}>
-                              <div className={styles.progressFill} style={{ width: '15%' }}></div>
-                            </div>
-                          </div>
-                        </div>
-                        <button className={styles.courseCardButton}>Continue</button>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </>
             )}
