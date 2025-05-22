@@ -2,7 +2,7 @@ name: AIMA LMS Deployment
 
 on:
   push:
-    branches: [main]
+    branches: [infra/deploy]
   workflow_dispatch:
 
 env:
