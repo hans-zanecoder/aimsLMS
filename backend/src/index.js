@@ -15,6 +15,7 @@ const User = require('./models/User');
 const instructorsRouter = require('./routes/instructors');
 const userSettingsRouter = require('./routes/userSettings');
 const booksRouter = require('./routes/books');
+const healthRouter = require('./routes/health');
 
 const app = express();
 
@@ -75,6 +76,7 @@ app.use((err, req, res, next) => {
 });
 
 // Routes
+app.use('/api/health', healthRouter);
 app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/courses', courseRoutes);
