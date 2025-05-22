@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import programsApi, { Program } from '@/services/programsApi';
+import programsApi, { Program, EnrollmentStats } from '@/services/programsApi';
 import {
   BookOpen,
   GraduationCap,
@@ -35,23 +35,31 @@ export default function StudentDashboard() {
   const [theme, setTheme] = useState('light');
   const userMenuRef = React.useRef<HTMLDivElement | null>(null);
   const [programs, setPrograms] = useState<Program[]>([]);
+  const [enrolledPrograms, setEnrolledPrograms] = useState<Program[]>([]);
+  const [stats, setStats] = useState<EnrollmentStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPrograms = async () => {
+    const fetchData = async () => {
       try {
-        const data = await programsApi.getAll();
-        setPrograms(data);
+        const [programsData, enrolledData, statsData] = await Promise.all([
+          programsApi.getAll(),
+          programsApi.getEnrolledPrograms(),
+          programsApi.getEnrollmentStats()
+        ]);
+        setPrograms(programsData);
+        setEnrolledPrograms(enrolledData);
+        setStats(statsData);
         setIsLoading(false);
       } catch (err) {
-        setError('Failed to fetch programs');
+        setError('Failed to fetch data');
         setIsLoading(false);
-        console.error('Error fetching programs:', err);
+        console.error('Error fetching data:', err);
       }
     };
 
-    fetchPrograms();
+    fetchData();
   }, []);
 
   // Click outside handler
@@ -118,11 +126,35 @@ export default function StudentDashboard() {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const stats = [
-    { label: 'Enrolled Courses', value: '2', icon: BookOpen, trend: '+1 this month', trendUp: true },
-    { label: 'Completed Courses', value: '1', icon: Award, trend: 'On track', trendUp: null },
-    { label: 'Hours Studied', value: '48', icon: Clock, trend: '+5 this week', trendUp: true },
-    { label: 'Assignments Due', value: '3', icon: Calendar, trend: 'Due this week', trendUp: false },
+  const dashboardStats = [
+    { 
+      label: 'Enrolled Courses', 
+      value: stats?.enrolledCount.toString() || '0', 
+      icon: BookOpen, 
+      trend: '+1 this month', 
+      trendUp: true 
+    },
+    { 
+      label: 'Completed Courses', 
+      value: stats?.completedCount.toString() || '0', 
+      icon: Award, 
+      trend: 'On track', 
+      trendUp: null 
+    },
+    { 
+      label: 'Hours Studied', 
+      value: stats?.hoursStudied.toString() || '0', 
+      icon: Clock, 
+      trend: '+5 this week', 
+      trendUp: true 
+    },
+    { 
+      label: 'Assignments Due', 
+      value: stats?.assignmentsDue.toString() || '0', 
+      icon: Calendar, 
+      trend: 'Due this week', 
+      trendUp: false 
+    },
   ];
 
   return (
@@ -240,7 +272,7 @@ export default function StudentDashboard() {
                 </div>
                 
                 <div className={styles.statsGrid}>
-                  {stats.map((stat) => (
+                  {dashboardStats.map((stat) => (
                     <div key={stat.label} className={styles.statCard}>
                       <div className={styles.statHeader}>
                         <div className={styles.statLabel}>{stat.label}</div>
@@ -329,9 +361,9 @@ export default function StudentDashboard() {
                             </div>
                             <button 
                               className={styles.viewButton}
-                              onClick={() => router.push(`/books?program=${program._id}`)}
+                              onClick={() => router.push(`/student/program/${program._id}`)}
                             >
-                              VIEW
+                              VIEW DETAILS
                             </button>
                           </div>
                         </div>
