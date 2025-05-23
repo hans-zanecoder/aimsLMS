@@ -42,20 +42,47 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      
       try {
-        const [programsData, enrolledData, statsData] = await Promise.all([
-          programsApi.getAll(),
+        // First try to fetch all programs as it's the most critical data
+        const programsData = await programsApi.getAll();
+        setPrograms(programsData);
+        
+        // Then fetch enrollment data and stats in parallel
+        // Use Promise.allSettled to handle partial failures
+        const [enrolledResult, statsResult] = await Promise.allSettled([
           programsApi.getEnrolledPrograms(),
           programsApi.getEnrollmentStats()
         ]);
-        setPrograms(programsData);
-        setEnrolledPrograms(enrolledData);
-        setStats(statsData);
-        setIsLoading(false);
+        
+        // Handle enrolled programs result
+        if (enrolledResult.status === 'fulfilled') {
+          setEnrolledPrograms(enrolledResult.value);
+        } else {
+          console.error('Error fetching enrolled programs:', enrolledResult.reason);
+          // Don't set error state here as we have the main programs data
+        }
+        
+        // Handle enrollment stats result
+        if (statsResult.status === 'fulfilled') {
+          setStats(statsResult.value);
+        } else {
+          console.error('Error fetching enrollment stats:', statsResult.reason);
+          // Set default stats if fetch fails
+          setStats({
+            enrolledCount: 0,
+            completedCount: 0,
+            hoursStudied: 0,
+            assignmentsDue: 0
+          });
+        }
       } catch (err) {
-        setError('Failed to fetch data');
-        setIsLoading(false);
         console.error('Error fetching data:', err);
+        setError('Failed to load programs. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
