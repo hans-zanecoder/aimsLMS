@@ -320,6 +320,97 @@ export default function StudentDashboard() {
                 </div>
                 
                 <div className={styles.sectionContent}>
+                  <div className={styles.sectionHeader}>
+                    <h2 className={styles.sectionTitle}>My Enrolled Programs</h2>
+                    {enrolledPrograms.length > 0 && (
+                      <button 
+                        className={styles.viewAllButton}
+                        onClick={() => setActiveTab('courses')}
+                      >
+                        View All
+                      </button>
+                    )}
+                  </div>
+                  
+                  {isLoading ? (
+                    <div className={styles.loadingState}>
+                      <div className={styles.loadingSpinner} />
+                      <p>Loading your programs...</p>
+                    </div>
+                  ) : error ? (
+                    <div className={styles.errorState}>
+                      <p>{error}</p>
+                      <button 
+                        className={styles.retryButton}
+                        onClick={() => {
+                          setIsLoading(true);
+                          setError(null);
+                          programsApi.getEnrolledPrograms()
+                            .then(data => {
+                              setEnrolledPrograms(data);
+                              setIsLoading(false);
+                            })
+                            .catch(err => {
+                              setError('Failed to fetch your programs');
+                              setIsLoading(false);
+                              console.error('Error fetching enrolled programs:', err);
+                            });
+                        }}
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  ) : enrolledPrograms.length === 0 ? (
+                    <div className={styles.emptyState}>
+                      <GraduationCap className="h-12 w-12 text-gray-400" />
+                      <h3>No programs enrolled</h3>
+                      <p>Browse available programs below to get started</p>
+                    </div>
+                  ) : (
+                    <div className={styles.programsGrid}>
+                      {enrolledPrograms.slice(0, 3).map((program) => (
+                        <div key={program._id} className={styles.programCard}>
+                          <div className={styles.programCardHeader}>
+                            <h3 className={styles.programCardTitle}>{program.name}</h3>
+                          </div>
+                          <div className={styles.programCardContent}>
+                            <div className={styles.programStats}>
+                              <div className={styles.statItem}>
+                                <Book className="h-5 w-5" />
+                                <div className={styles.statInfo}>
+                                  <div className={styles.statLabel}>Books</div>
+                                  <div className={styles.statValue}>{program.bookCount}</div>
+                                </div>
+                              </div>
+                              <div className={styles.statItem}>
+                                <Video className="h-5 w-5" />
+                                <div className={styles.statInfo}>
+                                  <div className={styles.statLabel}>Videos</div>
+                                  <div className={styles.statValue}>{program.videoCount}</div>
+                                </div>
+                              </div>
+                              <div className={styles.statItem}>
+                                <FileText className="h-5 w-5" />
+                                <div className={styles.statInfo}>
+                                  <div className={styles.statLabel}>Assignments</div>
+                                  <div className={styles.statValue}>{program.assignmentCount}</div>
+                                </div>
+                              </div>
+                            </div>
+                            <button 
+                              className={styles.viewButton}
+                              onClick={() => router.push(`/student/program/${program._id}`)}
+                            >
+                              VIEW COURSE
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.sectionContent}>
                   <h2 className={styles.sectionTitle}>Available Programs</h2>
                   {isLoading ? (
                     <div className={styles.loadingState}>
@@ -408,12 +499,82 @@ export default function StudentDashboard() {
                   Manage your enrolled courses and track your progress.
                 </p>
                 <div className={styles.coursesGrid}>
-                  {/* This would be populated with real courses */}
-                  <div className={styles.emptyState}>
-                    <BookOpen className="h-12 w-12 text-gray-400" />
-                    <h3>Course content will be available soon</h3>
-                    <p>We're working on bringing you the best learning experience</p>
-                  </div>
+                  {isLoading ? (
+                    <div className={styles.loadingState}>
+                      <div className={styles.loadingSpinner} />
+                      <p>Loading your courses...</p>
+                    </div>
+                  ) : error ? (
+                    <div className={styles.errorState}>
+                      <p>{error}</p>
+                      <button 
+                        className={styles.retryButton}
+                        onClick={() => {
+                          setIsLoading(true);
+                          setError(null);
+                          programsApi.getEnrolledPrograms()
+                            .then(data => {
+                              setEnrolledPrograms(data);
+                              setIsLoading(false);
+                            })
+                            .catch(err => {
+                              setError('Failed to fetch your courses');
+                              setIsLoading(false);
+                              console.error('Error fetching enrolled courses:', err);
+                            });
+                        }}
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  ) : enrolledPrograms.length === 0 ? (
+                    <div className={styles.emptyState}>
+                      <BookOpen className="h-12 w-12 text-gray-400" />
+                      <h3>No enrolled courses yet</h3>
+                      <p>Browse available programs to enroll in courses</p>
+                    </div>
+                  ) : (
+                    <div className={styles.programsGrid}>
+                      {enrolledPrograms.map((program) => (
+                        <div key={program._id} className={styles.programCard}>
+                          <div className={styles.programCardHeader}>
+                            <h3 className={styles.programCardTitle}>{program.name}</h3>
+                          </div>
+                          <div className={styles.programCardContent}>
+                            <div className={styles.programStats}>
+                              <div className={styles.statItem}>
+                                <Book className="h-5 w-5" />
+                                <div className={styles.statInfo}>
+                                  <div className={styles.statLabel}>Books</div>
+                                  <div className={styles.statValue}>{program.bookCount}</div>
+                                </div>
+                              </div>
+                              <div className={styles.statItem}>
+                                <Video className="h-5 w-5" />
+                                <div className={styles.statInfo}>
+                                  <div className={styles.statLabel}>Videos</div>
+                                  <div className={styles.statValue}>{program.videoCount}</div>
+                                </div>
+                              </div>
+                              <div className={styles.statItem}>
+                                <FileText className="h-5 w-5" />
+                                <div className={styles.statInfo}>
+                                  <div className={styles.statLabel}>Assignments</div>
+                                  <div className={styles.statValue}>{program.assignmentCount}</div>
+                                </div>
+                              </div>
+                            </div>
+                            <button 
+                              className={styles.viewButton}
+                              onClick={() => router.push(`/student/program/${program._id}`)}
+                            >
+                              VIEW COURSE
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
