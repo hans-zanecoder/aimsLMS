@@ -147,6 +147,8 @@ router.post('/login', async (req, res) => {
 router.post('/logout', (req, res) => {
   res.cookie('token', '', {
     httpOnly: true,
+    secure: true,         // Always true for cross-site cookies
+    sameSite: 'none',     // Required for cross-site cookies
     expires: new Date(0)
   });
   res.json({ message: 'Logged out successfully' });

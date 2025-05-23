@@ -37,7 +37,7 @@ export const coursesApi = {
     sortBy?: string;
   }): Promise<Course[]> => {
     try {
-      const response = await axios.get(`${API_URL}/courses`, { params });
+      const response = await axios.get(`${API_URL}/courses`, { params, withCredentials: true });
       return response.data;
     } catch (error) {
       console.error('Error fetching courses:', error);
@@ -48,7 +48,7 @@ export const coursesApi = {
   // Get course by ID
   getCourseById: async (id: string): Promise<Course> => {
     try {
-      const response = await axios.get(`${API_URL}/courses/${id}`);
+      const response = await axios.get(`${API_URL}/courses/${id}`, { withCredentials: true });
       return response.data;
     } catch (error) {
       console.error('Error fetching course:', error);
@@ -59,7 +59,7 @@ export const coursesApi = {
   // Get featured courses
   getFeaturedCourses: async (): Promise<Course[]> => {
     try {
-      const response = await axios.get(`${API_URL}/courses/featured`);
+      const response = await axios.get(`${API_URL}/courses/featured`, { withCredentials: true });
       return response.data;
     } catch (error) {
       console.error('Error fetching featured courses:', error);
@@ -70,7 +70,7 @@ export const coursesApi = {
   // Get enrolled courses for current user
   getEnrolledCourses: async (): Promise<Course[]> => {
     try {
-      const response = await axios.get(`${API_URL}/courses/enrolled`);
+      const response = await axios.get(`${API_URL}/courses/enrolled`, { withCredentials: true });
       return response.data;
     } catch (error) {
       console.error('Error fetching enrolled courses:', error);
@@ -81,7 +81,7 @@ export const coursesApi = {
   // Enroll in a course
   enrollInCourse: async (courseId: string): Promise<any> => {
     try {
-      const response = await axios.post(`${API_URL}/courses/${courseId}/enroll`);
+      const response = await axios.post(`${API_URL}/courses/${courseId}/enroll`, {}, { withCredentials: true });
       return response.data;
     } catch (error) {
       console.error('Error enrolling in course:', error);

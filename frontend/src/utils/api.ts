@@ -254,7 +254,9 @@ export const coursesApi = {
 export const programsApi = {
   getAll: async (): Promise<Program[]> => {
     try {
-      const response = await fetch(`${API_URL}/programs`);
+      const response = await fetch(`${API_URL}/programs`, {
+        credentials: 'include'
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch programs');
       }
@@ -267,7 +269,9 @@ export const programsApi = {
 
   getById: async (id: string): Promise<Program> => {
     try {
-      const response = await fetch(`${API_URL}/programs/${id}`);
+      const response = await fetch(`${API_URL}/programs/${id}`, {
+        credentials: 'include'
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch program');
       }
@@ -286,6 +290,7 @@ export const programsApi = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
+        credentials: 'include'
       });
       if (!response.ok) {
         throw new Error('Failed to create program');
@@ -305,6 +310,7 @@ export const programsApi = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
+        credentials: 'include'
       });
       if (!response.ok) {
         throw new Error('Failed to update program');
@@ -320,6 +326,7 @@ export const programsApi = {
     try {
       const response = await fetch(`${API_URL}/programs/${id}`, {
         method: 'DELETE',
+        credentials: 'include'
       });
       if (!response.ok) {
         throw new Error('Failed to delete program');
@@ -334,7 +341,9 @@ export const programsApi = {
 export const instructorsApi = {
   getAll: async () => {
     try {
-      const response = await fetch(`${API_URL}/instructors`);
+      const response = await fetch(`${API_URL}/instructors`, {
+        credentials: 'include'
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch instructors');
       }
@@ -347,7 +356,9 @@ export const instructorsApi = {
 
   getById: async (id: string) => {
     try {
-      const response = await fetch(`${API_URL}/instructors/${id}`);
+      const response = await fetch(`${API_URL}/instructors/${id}`, {
+        credentials: 'include'
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch instructor');
       }
@@ -366,6 +377,7 @@ export const instructorsApi = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
+        credentials: 'include'
       });
       if (!response.ok) {
         throw new Error('Failed to create instructor');
@@ -385,6 +397,7 @@ export const instructorsApi = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
+        credentials: 'include'
       });
       if (!response.ok) {
         throw new Error('Failed to update instructor');
@@ -400,6 +413,7 @@ export const instructorsApi = {
     try {
       const response = await fetch(`${API_URL}/instructors/${id}`, {
         method: 'DELETE',
+        credentials: 'include'
       });
       if (!response.ok) {
         throw new Error('Failed to delete instructor');
