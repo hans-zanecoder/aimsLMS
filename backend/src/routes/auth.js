@@ -118,8 +118,8 @@ router.post('/login', async (req, res) => {
     // Set token in HTTP-only cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: true,         // Always true for cross-site cookies
+      sameSite: 'none',     // Required for cross-site cookies
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
 
@@ -225,8 +225,8 @@ router.post('/refresh-token', auth, async (req, res) => {
     // Set token in HTTP-only cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: true,         // Always true for cross-site cookies
+      sameSite: 'none',     // Required for cross-site cookies
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
 
