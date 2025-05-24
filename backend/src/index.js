@@ -37,7 +37,9 @@ const allowedOrigins = [
   process.env.CORS_ORIGIN,
   process.env.FRONTEND_URL,
   'http://localhost:3000',
-  'http://localhost:3001'
+  'http://localhost:3001',
+  'https://aima-lms-frontend-782549404678.us-west1.run.app',
+  'https://aima-lms-backend-782549404678.us-west1.run.app'
 ].filter(Boolean); // Remove undefined
 
 logInfo(`CORS allowed origins: ${allowedOrigins.join(', ')}`);
@@ -47,10 +49,25 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    
+    // Check if the origin is allowed
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      // Exact match for localhost and specific domains
+      if (allowedOrigin === origin) return true;
+      // Flexible match for Cloud Run domains
+      if (origin.endsWith('.run.app')) return true;
+      return false;
+    });
+    
+    if (isAllowed) {
       return callback(null, true);
     }
-    // Optionally, log or handle disallowed origins
+    
+    // Log disallowed origins in development
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Blocked origin:', origin);
+    }
+    
     return callback(new Error('Not allowed by CORS'), false);
   },
   credentials: true,
