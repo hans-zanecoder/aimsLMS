@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const { login, error } = useAuth();
   const { toggleTheme, ThemeIcon } = useTheme();
 
@@ -21,10 +22,28 @@ export default function LoginPage() {
       await login(email, password);
     } catch (err) {
       console.error('Login failed:', err);
+      // Error is handled by AuthContext
     } finally {
-      setIsLoading(false);
+      // Only set loading to false if we're not redirecting
+      if (!isRedirecting) {
+        setIsLoading(false);
+      }
     }
   };
+
+  // Show loading state during redirection
+  if (isRedirecting) {
+    return (
+      <div className={styles.loginContainer}>
+        <div className={styles.redirectingOverlay}>
+          <div className={styles.loadingSpinner}>
+            <div className={styles.spinner}></div>
+            <span>Redirecting to dashboard...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.loginContainer}>
