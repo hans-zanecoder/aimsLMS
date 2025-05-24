@@ -88,23 +88,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       console.log('Login successful, user role:', user.role);
       
+      // Ensure the user state is set before redirecting
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // Redirect based on role
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      const basePath = window.location.origin;
+      
       switch (user.role) {
         case 'admin':
           console.log('Redirecting to admin dashboard...');
-          router.push('/admin/dashboard');
+          if (isDevelopment) {
+            router.push('/admin/dashboard');
+          } else {
+            window.location.href = `${basePath}/admin/dashboard`;
+          }
           break;
         case 'instructor':
           console.log('Redirecting to instructor dashboard...');
-          router.push('/instructor/dashboard');
+          if (isDevelopment) {
+            router.push('/instructor/dashboard');
+          } else {
+            window.location.href = `${basePath}/instructor/dashboard`;
+          }
           break;
         case 'student':
           console.log('Redirecting to student dashboard...');
-          router.push('/student/dashboard');
+          if (isDevelopment) {
+            router.push('/student/dashboard');
+          } else {
+            window.location.href = `${basePath}/student/dashboard`;
+          }
           break;
         default:
           console.log('Unknown role, redirecting to login...');
-          router.push('/login');
+          if (isDevelopment) {
+            router.push('/login');
+          } else {
+            window.location.href = `${basePath}/login`;
+          }
       }
     } catch (error) {
       console.error('Login error:', error);
