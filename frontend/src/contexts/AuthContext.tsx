@@ -33,21 +33,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       console.log('Using Next.js router for navigation');
+      
+      // Start navigation
       router.push(url);
       
-      // Wait a bit to see if the navigation was successful
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Check if we're still on the same page
-      if (window.location.pathname === url) {
-        console.log('Navigation successful');
-      } else {
-        console.log('Current path:', window.location.pathname, 'Expected path:', url);
-        throw new Error('Navigation verification failed');
+      // Instead of immediately checking, wait for navigation to complete
+      // Try multiple times with increasing delays
+      for (let i = 0; i < 3; i++) {
+        console.log(`Navigation check attempt ${i + 1}`);
+        
+        // Wait with increasing delay (1s, 2s, 3s)
+        await new Promise(resolve => setTimeout(resolve, (i + 1) * 1000));
+        
+        // Get the current path without query parameters
+        const currentPath = window.location.pathname;
+        console.log('Current path:', currentPath, 'Expected path:', url);
+        
+        // Check if we've reached the target URL or if we're in a loading state
+        if (currentPath === url) {
+          console.log('Navigation successful');
+          return;
+        }
+        
+        // If we're still on the login page after multiple attempts, something's wrong
+        if (i === 2 && currentPath === '/login') {
+          throw new Error('Still on login page after multiple attempts');
+        }
       }
+      
+      // If we get here, navigation didn't complete in time
+      throw new Error('Navigation timeout - this might be due to slow network or server response');
+      
     } catch (error) {
       console.error('Navigation error:', error);
-      throw new Error(`Failed to navigate to ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Navigation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsRedirecting(false);
     }
@@ -120,8 +139,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       console.log('Login successful, user role:', user.role);
       
-      // Ensure the user state is set before redirecting
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Give more time for the user state to be set
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Determine the dashboard path based on role
       const dashboardPath = `/${user.role}/dashboard`;
@@ -137,7 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         errorMessage = error.message;
       } else if (error instanceof Error) {
         if (error.message.includes('Navigation')) {
-          errorMessage = 'Failed to redirect after login. Please try again.';
+          errorMessage = 'Failed to redirect to dashboard. This might be due to slow network or server response. Please wait a moment and try again.';
         } else {
           errorMessage = error.message;
         }
