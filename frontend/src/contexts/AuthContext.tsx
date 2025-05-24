@@ -32,44 +32,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsRedirecting(true);
 
     try {
-      console.log('Using Next.js router for navigation');
+      // First try to fetch the page to check if we can access it
+      console.log('Checking page accessibility...');
+      const fullUrl = window.location.origin + url;
       
-      // Start navigation
-      router.push(url);
-      
-      // Instead of checking the current path, we'll wait for the middleware response
-      for (let i = 0; i < 3; i++) {
-        console.log(`Navigation check attempt ${i + 1}`);
+      try {
+        const response = await fetch(fullUrl, {
+          credentials: 'include',
+          headers: {
+            'Accept': 'text/html',
+          },
+          redirect: 'follow', // Allow following redirects
+        });
         
-        // Wait with increasing delay (1s, 2s, 3s)
-        await new Promise(resolve => setTimeout(resolve, (i + 1) * 1000));
-        
-        try {
-          // Try to fetch the dashboard page to verify access
-          const response = await fetch(url, {
-            credentials: 'include',
-            headers: {
-              'Accept': 'text/html',
-            }
-          });
-          
-          console.log('Navigation check response:', response.status, response.statusText);
-          
-          if (response.ok) {
-            console.log('Navigation successful - page is accessible');
-            return;
-          }
-          
-          if (response.status === 401 || response.status === 403) {
-            throw new Error('Authentication failed - please log in again');
-          }
-        } catch (fetchError) {
-          console.warn(`Navigation check attempt ${i + 1} failed:`, fetchError);
-          if (i === 2) throw fetchError;
+        console.log('Page accessibility check response:', {
+          status: response.status,
+          statusText: response.statusText,
+          type: response.type,
+          url: response.url
+        });
+
+        if (response.ok) {
+          console.log('Page is accessible, performing navigation');
+          // If the page is accessible, do a hard navigation
+          window.location.href = url;
+          return;
         }
+
+        if (response.status === 307) {
+          console.log('Received redirect response, following redirect');
+          window.location.href = url;
+          return;
+        }
+
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('Authentication failed - please log in again');
+        }
+      } catch (fetchError) {
+        console.error('Page accessibility check failed:', fetchError);
+        throw fetchError;
       }
-      
-      throw new Error('Navigation timeout - unable to verify access to the dashboard');
+
+      // If we get here without returning, something went wrong
+      throw new Error('Failed to verify page accessibility');
       
     } catch (error) {
       console.error('Navigation error:', error);

@@ -29,19 +29,30 @@ export function middleware(request: NextRequest) {
     console.log('Cookie details:', {
       name: token.name,
       value: token.value ? `${token.value.substring(0, 10)}...` : undefined,
-      path: token.path,
-      expires: token.expires,
     });
   }
 
   // Function to create response with preserved headers
   const createResponse = (url: string) => {
     console.log('Creating redirect response to:', url);
-    const response = NextResponse.redirect(new URL(url, request.url));
+    // Ensure we have a full URL
+    const fullUrl = url.startsWith('http') 
+      ? url 
+      : new URL(url, process.env.NEXT_PUBLIC_FRONTEND_URL || request.url).toString();
+    
+    console.log('Full redirect URL:', fullUrl);
+    const response = NextResponse.redirect(fullUrl);
+    
     // Preserve the CORS and cookie headers
     response.headers.set('Access-Control-Allow-Credentials', 'true');
     const origin = process.env.NEXT_PUBLIC_FRONTEND_URL || request.headers.get('origin') || '';
     response.headers.set('Access-Control-Allow-Origin', origin);
+    
+    // Add cache control headers to prevent caching
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    
     console.log('Response headers:', Object.fromEntries(response.headers));
     return response;
   };
