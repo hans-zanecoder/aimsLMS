@@ -25,7 +25,6 @@ export function middleware(request: NextRequest) {
   console.log('Cookie token present:', !!token);
   if (token) {
     console.log('Cookie token value length:', token.value.length);
-    // Log what we can access from the cookie
     console.log('Cookie details:', {
       name: token.name,
       value: token.value ? `${token.value.substring(0, 10)}...` : undefined,
@@ -35,13 +34,16 @@ export function middleware(request: NextRequest) {
   // Function to create response with preserved headers
   const createResponse = (url: string) => {
     console.log('Creating redirect response to:', url);
-    // Ensure we have a full URL
-    const fullUrl = url.startsWith('http') 
-      ? url 
-      : new URL(url, process.env.NEXT_PUBLIC_FRONTEND_URL || request.url).toString();
+    
+    // Ensure we have a full URL with the correct origin
+    const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || request.headers.get('host') || request.url;
+    const fullUrl = url.startsWith('http') ? url : new URL(url, `https://${baseUrl}`).toString();
     
     console.log('Full redirect URL:', fullUrl);
-    const response = NextResponse.redirect(fullUrl);
+    const response = NextResponse.redirect(fullUrl, {
+      // Add status 303 to force a new GET request and prevent redirect loops
+      status: 303
+    });
     
     // Preserve the CORS and cookie headers
     response.headers.set('Access-Control-Allow-Credentials', 'true');
@@ -119,11 +121,19 @@ export function middleware(request: NextRequest) {
     return createResponse('/login');
   }
 
+  // If we get here, allow the request to proceed
   console.log('Access granted, proceeding with request');
   const response = NextResponse.next();
+  
   // Add CORS headers to all responses
   response.headers.set('Access-Control-Allow-Credentials', 'true');
   response.headers.set('Access-Control-Allow-Origin', process.env.NEXT_PUBLIC_FRONTEND_URL || request.headers.get('origin') || '');
+  
+  // Add cache control headers
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  response.headers.set('Pragma', 'no-cache');
+  response.headers.set('Expires', '0');
+  
   console.log('Final response headers:', Object.fromEntries(response.headers));
   return response;
 }
