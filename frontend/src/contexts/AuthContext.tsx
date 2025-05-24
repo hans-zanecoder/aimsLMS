@@ -52,30 +52,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           url: response.url
         });
 
-        if (response.ok) {
-          console.log('Page is accessible, performing navigation');
-          // If the page is accessible, do a hard navigation
-          window.location.href = url;
-          return;
-        }
-
-        if (response.status === 307) {
-          console.log('Received redirect response, following redirect');
-          window.location.href = url;
-          return;
+        if (response.ok || response.status === 307) {
+          console.log('Page is accessible or requires redirect, using Next.js router');
+          
+          // Use Next.js router for navigation
+          router.push(url);
+          
+          // Monitor the navigation
+          let attempts = 0;
+          const maxAttempts = 5;
+          
+          while (attempts < maxAttempts) {
+            console.log(`Checking navigation progress (attempt ${attempts + 1}/${maxAttempts})`);
+            
+            // Wait a bit before checking
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            try {
+              // Try to fetch the current page to verify where we are
+              const checkResponse = await fetch(window.location.href, {
+                credentials: 'include',
+                headers: {
+                  'Accept': 'text/html',
+                },
+              });
+              
+              console.log('Navigation check response:', {
+                currentUrl: window.location.pathname,
+                status: checkResponse.status,
+                targetUrl: url
+              });
+              
+              // If we're on the target page or got a successful response
+              if (window.location.pathname === url || checkResponse.ok) {
+                console.log('Navigation successful!');
+                return;
+              }
+            } catch (checkError) {
+              console.warn('Navigation check failed:', checkError);
+            }
+            
+            attempts++;
+          }
+          
+          // If we get here, navigation didn't complete
+          throw new Error('Navigation did not complete after multiple attempts');
         }
 
         if (response.status === 401 || response.status === 403) {
           throw new Error('Authentication failed - please log in again');
         }
+        
+        throw new Error(`Unexpected response: ${response.status} ${response.statusText}`);
       } catch (fetchError) {
         console.error('Page accessibility check failed:', fetchError);
         throw fetchError;
       }
-
-      // If we get here without returning, something went wrong
-      throw new Error('Failed to verify page accessibility');
-      
     } catch (error) {
       console.error('Navigation error:', error);
       throw new Error(`Navigation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
