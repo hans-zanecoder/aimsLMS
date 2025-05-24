@@ -117,27 +117,33 @@ router.post('/login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
-    // Set cookie domain based on environment
-    const cookieDomain = process.env.COOKIE_DOMAIN || (process.env.NODE_ENV === 'production' ? 'us-west1.run.app' : undefined);
+    // Get the request origin
+    const origin = req.get('origin');
+    console.log('Request origin:', origin);
+    console.log('Frontend URL:', process.env.FRONTEND_URL);
+
+    // Set cookie domain based on environment and request
+    const cookieDomain = process.env.NODE_ENV === 'production' ? 'us-west1.run.app' : undefined;
     
     console.log('Setting cookie with domain:', cookieDomain);
-    console.log('Frontend URL:', process.env.FRONTEND_URL);
 
     // Set token in HTTP-only cookie with proper security settings
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      secure: true, // Always use secure in production
+      sameSite: 'None', // Required for cross-site cookies
       domain: cookieDomain,
       path: '/',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
 
     // Set CORS headers
+    const allowedOrigin = process.env.FRONTEND_URL || origin || '*';
+    res.header('Access-Control-Allow-Origin', allowedOrigin);
     res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL);
     res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
+    res.header('Vary', 'Origin');
 
     // Return user info (excluding password)
     res.json({
@@ -161,22 +167,25 @@ router.post('/login', async (req, res) => {
 
 // Logout route
 router.post('/logout', (req, res) => {
-  const cookieDomain = process.env.COOKIE_DOMAIN || (process.env.NODE_ENV === 'production' ? 'us-west1.run.app' : undefined);
+  const origin = req.get('origin');
+  const cookieDomain = process.env.NODE_ENV === 'production' ? 'us-west1.run.app' : undefined;
 
   res.cookie('token', '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+    secure: true,
+    sameSite: 'None',
     domain: cookieDomain,
     path: '/',
     expires: new Date(0)
   });
 
   // Set CORS headers
+  const allowedOrigin = process.env.FRONTEND_URL || origin || '*';
+  res.header('Access-Control-Allow-Origin', allowedOrigin);
   res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL);
   res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Vary', 'Origin');
 
   res.json({ message: 'Logged out successfully' });
 });
@@ -401,6 +410,20 @@ router.post('/change-password', auth, async (req, res) => {
     console.error('Change password error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
+});
+
+// Add OPTIONS handler for CORS preflight requests
+router.options('*', (req, res) => {
+  const origin = req.get('origin');
+  const allowedOrigin = process.env.FRONTEND_URL || origin || '*';
+  
+  res.header('Access-Control-Allow-Origin', allowedOrigin);
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Vary', 'Origin');
+  
+  res.status(204).end();
 });
 
 module.exports = router; 

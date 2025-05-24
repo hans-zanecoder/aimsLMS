@@ -1,50 +1,84 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
-  const token = request.cookies.get('token');
-  const path = request.nextUrl.pathname;
+type UserRole = 'admin' | 'instructor' | 'student';
 
-  // Public paths that don't require authentication
+interface JwtPayload {
+  role: UserRole;
+  userId: string;
+  iat: number;
+  exp: number;
+}
+
+export function middleware(request: NextRequest) {
+  // Get the pathname
+  const path = request.nextUrl.pathname;
+  
+  // Get token from cookie
+  const token = request.cookies.get('token');
+  
+  // Function to decode JWT without verification
+  const decodeJwt = (token: string): JwtPayload | null => {
+    try {
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch (e) {
+      return null;
+    }
+  };
+
+  // Function to create response with preserved headers
+  const createResponse = (url: URL | string) => {
+    const response = NextResponse.redirect(url);
+    // Preserve the CORS and cookie headers
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
+    response.headers.set('Access-Control-Allow-Origin', process.env.NEXT_PUBLIC_FRONTEND_URL || request.headers.get('origin') || '');
+    return response;
+  };
+
+  // Handle login page
   if (path === '/login') {
-    // If user is already logged in, redirect to appropriate dashboard
-    if (token) {
-      // Get the role from the JWT token (you'll need to decode it)
-      const tokenData = token.value ? JSON.parse(atob(token.value.split('.')[1])) : null;
-      const role = tokenData?.role || 'student';
-      
-      // Redirect to the appropriate dashboard
-      const dashboardPath = `/${role}/dashboard`;
-      return NextResponse.redirect(new URL(dashboardPath, request.url));
+    if (token?.value) {
+      const decoded = decodeJwt(token.value);
+      if (decoded?.role) {
+        const dashboardPath = `/${decoded.role}/dashboard`;
+        return createResponse(new URL(dashboardPath, request.url));
+      }
     }
     return NextResponse.next();
   }
 
-  // Protected paths that require authentication
-  if (!token) {
+  // Protected routes check
+  if (!token?.value) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('from', request.nextUrl.pathname);
-    return NextResponse.redirect(loginUrl);
+    return createResponse(loginUrl);
   }
 
-  // Get the role from the JWT token
-  const tokenData = token.value ? JSON.parse(atob(token.value.split('.')[1])) : null;
-  const role = tokenData?.role || 'student';
+  // Role-based access control
+  const decoded = decodeJwt(token.value);
+  const role = decoded?.role || 'student';
 
-  // Role-based route protection
-  if (path.startsWith('/admin') && role !== 'admin') {
-    return NextResponse.redirect(new URL(`/${role}/dashboard`, request.url));
+  // Define allowed paths for each role
+  const allowedPaths: Record<UserRole, string[]> = {
+    admin: ['/admin'],
+    instructor: ['/instructor'],
+    student: ['/student']
+  };
+
+  // Check if user has access to the current path
+  const hasAccess = allowedPaths[role as UserRole]?.some((allowedPath: string) => path.startsWith(allowedPath));
+  
+  if (!hasAccess) {
+    // Redirect to appropriate dashboard
+    const dashboardPath = `/${role}/dashboard`;
+    return createResponse(new URL(dashboardPath, request.url));
   }
 
-  if (path.startsWith('/instructor') && role !== 'instructor') {
-    return NextResponse.redirect(new URL(`/${role}/dashboard`, request.url));
-  }
-
-  if (path.startsWith('/student') && role !== 'student') {
-    return NextResponse.redirect(new URL(`/${role}/dashboard`, request.url));
-  }
-
-  return NextResponse.next();
+  const response = NextResponse.next();
+  // Add CORS headers to all responses
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  response.headers.set('Access-Control-Allow-Origin', process.env.NEXT_PUBLIC_FRONTEND_URL || request.headers.get('origin') || '');
+  return response;
 }
 
 export const config = {
