@@ -11,52 +11,80 @@ interface JwtPayload {
 }
 
 export function middleware(request: NextRequest) {
+  console.log('\n=== Middleware Execution ===');
+  console.log('Path:', request.nextUrl.pathname);
+  console.log('Full URL:', request.url);
+  console.log('Method:', request.method);
+  console.log('Headers:', Object.fromEntries(request.headers));
+  
   // Get the pathname
   const path = request.nextUrl.pathname;
   
   // Get token from cookie
   const token = request.cookies.get('token');
+  console.log('Cookie token present:', !!token);
+  if (token) {
+    console.log('Cookie token value length:', token.value.length);
+    // Log what we can access from the cookie
+    console.log('Cookie details:', {
+      name: token.name,
+      value: token.value ? `${token.value.substring(0, 10)}...` : undefined,
+    });
+  }
   
   // Function to decode JWT without verification
   const decodeJwt = (token: string): JwtPayload | null => {
     try {
-      return JSON.parse(atob(token.split('.')[1]));
+      const decoded = JSON.parse(atob(token.split('.')[1]));
+      console.log('Decoded JWT payload:', decoded);
+      return decoded;
     } catch (e) {
+      console.error('Failed to decode JWT:', e);
       return null;
     }
   };
 
   // Function to create response with preserved headers
   const createResponse = (url: URL | string) => {
+    console.log('Creating redirect response to:', typeof url === 'string' ? url : url.toString());
     const response = NextResponse.redirect(url);
     // Preserve the CORS and cookie headers
     response.headers.set('Access-Control-Allow-Credentials', 'true');
-    response.headers.set('Access-Control-Allow-Origin', process.env.NEXT_PUBLIC_FRONTEND_URL || request.headers.get('origin') || '');
+    const origin = process.env.NEXT_PUBLIC_FRONTEND_URL || request.headers.get('origin') || '';
+    response.headers.set('Access-Control-Allow-Origin', origin);
+    console.log('Response headers:', Object.fromEntries(response.headers));
     return response;
   };
 
   // Handle login page
   if (path === '/login') {
+    console.log('Processing login page request');
     if (token?.value) {
+      console.log('Token found on login page, attempting to decode');
       const decoded = decodeJwt(token.value);
       if (decoded?.role) {
+        console.log('Valid role found in token, redirecting to dashboard');
         const dashboardPath = `/${decoded.role}/dashboard`;
         return createResponse(new URL(dashboardPath, request.url));
       }
     }
+    console.log('No valid token found, allowing access to login page');
     return NextResponse.next();
   }
 
   // Protected routes check
   if (!token?.value) {
+    console.log('No token found for protected route, redirecting to login');
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('from', request.nextUrl.pathname);
+    console.log('Redirect URL with from parameter:', loginUrl.toString());
     return createResponse(loginUrl);
   }
 
   // Role-based access control
   const decoded = decodeJwt(token.value);
   const role = decoded?.role || 'student';
+  console.log('User role from token:', role);
 
   // Define allowed paths for each role
   const allowedPaths: Record<UserRole, string[]> = {
@@ -67,17 +95,20 @@ export function middleware(request: NextRequest) {
 
   // Check if user has access to the current path
   const hasAccess = allowedPaths[role as UserRole]?.some((allowedPath: string) => path.startsWith(allowedPath));
+  console.log('Access check:', { role, path, hasAccess });
   
   if (!hasAccess) {
-    // Redirect to appropriate dashboard
+    console.log('Access denied, redirecting to appropriate dashboard');
     const dashboardPath = `/${role}/dashboard`;
     return createResponse(new URL(dashboardPath, request.url));
   }
 
+  console.log('Access granted, proceeding with request');
   const response = NextResponse.next();
   // Add CORS headers to all responses
   response.headers.set('Access-Control-Allow-Credentials', 'true');
   response.headers.set('Access-Control-Allow-Origin', process.env.NEXT_PUBLIC_FRONTEND_URL || request.headers.get('origin') || '');
+  console.log('Final response headers:', Object.fromEntries(response.headers));
   return response;
 }
 

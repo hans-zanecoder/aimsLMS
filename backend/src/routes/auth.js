@@ -50,35 +50,45 @@ const validateProfile = (data) => {
 
 // Login route
 router.post('/login', async (req, res) => {
+  console.log('\n=== Login Request ===');
+  console.log('Headers:', req.headers);
+  console.log('Body:', { ...req.body, password: '[REDACTED]' });
+  
   try {
     const { email, password } = req.body;
 
     // Validate input
     const emailError = validateEmail(email);
     if (emailError) {
+      console.log('Email validation failed:', emailError);
       return res.status(400).json({ message: emailError });
     }
     
     const passwordError = validatePassword(password);
     if (passwordError) {
+      console.log('Password validation failed:', passwordError);
       return res.status(400).json({ message: passwordError });
     }
 
     // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
+      console.log('User not found:', email);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     // Check if account is locked
     if (user.accountLocked) {
+      console.log('Account locked check for:', email);
       // Check if lock period has expired
       if (user.lockUntil && user.lockUntil > new Date()) {
         const minutesLeft = Math.ceil((user.lockUntil - new Date()) / (60 * 1000));
+        console.log('Account still locked for', minutesLeft, 'minutes');
         return res.status(401).json({ 
           message: `Account is locked due to too many failed attempts. Try again in ${minutesLeft} minutes.` 
         });
       } else {
+        console.log('Lock period expired, unlocking account');
         // Lock period expired, unlock the account
         user.accountLocked = false;
         user.failedLoginAttempts = 0;
@@ -90,12 +100,14 @@ router.post('/login', async (req, res) => {
     // Verify password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+      console.log('Password mismatch for:', email);
       // Handle failed login attempt
       await user.incrementLoginAttempts();
       
       // Check if account is now locked
       if (user.accountLocked) {
         const minutesLeft = Math.ceil((user.lockUntil - new Date()) / (60 * 1000));
+        console.log('Account now locked for', minutesLeft, 'minutes');
         return res.status(401).json({ 
           message: `Account is locked due to too many failed attempts. Try again in ${minutesLeft} minutes.` 
         });
@@ -106,6 +118,8 @@ router.post('/login', async (req, res) => {
         attemptsLeft: 5 - user.failedLoginAttempts
       });
     }
+
+    console.log('Password verified for:', email);
 
     // Reset failed login attempts on successful login
     await user.resetLoginAttempts();
@@ -119,13 +133,24 @@ router.post('/login', async (req, res) => {
 
     // Get the request origin
     const origin = req.get('origin');
-    console.log('Request origin:', origin);
-    console.log('Frontend URL:', process.env.FRONTEND_URL);
+    console.log('Request details:', {
+      origin,
+      referer: req.get('referer'),
+      userAgent: req.get('user-agent'),
+      frontendUrl: process.env.FRONTEND_URL,
+      nodeEnv: process.env.NODE_ENV
+    });
 
     // Set cookie domain based on environment and request
     const cookieDomain = process.env.NODE_ENV === 'production' ? 'us-west1.run.app' : undefined;
     
-    console.log('Setting cookie with domain:', cookieDomain);
+    console.log('Cookie settings:', {
+      domain: cookieDomain,
+      secure: true,
+      sameSite: 'None',
+      path: '/',
+      maxAge: '24h'
+    });
 
     // Set token in HTTP-only cookie with proper security settings
     res.cookie('token', token, {
@@ -145,8 +170,10 @@ router.post('/login', async (req, res) => {
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     res.header('Vary', 'Origin');
 
+    console.log('Response headers:', res.getHeaders());
+
     // Return user info (excluding password)
-    res.json({
+    const responseData = {
       user: {
         id: user._id,
         email: user.email,
@@ -158,7 +185,9 @@ router.post('/login', async (req, res) => {
         department: user.department || '',
         joinDate: user.joinDate || ''
       }
-    });
+    };
+    console.log('Response data:', responseData);
+    res.json(responseData);
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -167,8 +196,18 @@ router.post('/login', async (req, res) => {
 
 // Logout route
 router.post('/logout', (req, res) => {
+  console.log('\n=== Logout Request ===');
+  console.log('Headers:', req.headers);
+  
   const origin = req.get('origin');
   const cookieDomain = process.env.NODE_ENV === 'production' ? 'us-west1.run.app' : undefined;
+
+  console.log('Clearing cookie with settings:', {
+    domain: cookieDomain,
+    secure: true,
+    sameSite: 'None',
+    path: '/',
+  });
 
   res.cookie('token', '', {
     httpOnly: true,
@@ -187,6 +226,7 @@ router.post('/logout', (req, res) => {
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   res.header('Vary', 'Origin');
 
+  console.log('Response headers:', res.getHeaders());
   res.json({ message: 'Logged out successfully' });
 });
 
