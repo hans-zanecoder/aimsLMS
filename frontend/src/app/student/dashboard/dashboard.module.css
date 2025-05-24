@@ -933,4 +933,27 @@
 
 .retryButton:hover {
   opacity: 0.9;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.viewAllButton {
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  border: 1px solid var(--primary-color, #4F46E5);
+  color: var(--primary-color, #4F46E5);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.viewAllButton:hover {
+  background-color: var(--primary-color, #4F46E5);
+  color: white;
 } 

@@ -70,7 +70,9 @@ export const programsApi = {
   // Get all programs
   getAll: async (): Promise<Program[]> => {
     try {
-      const response = await fetch(`${API_URL}/programs`);
+      const response = await fetch(`${API_URL}/programs`, {
+        credentials: 'include'
+      });
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
       }
@@ -84,7 +86,9 @@ export const programsApi = {
   // Get a specific program by ID
   getById: async (id: string): Promise<Program> => {
     try {
-      const response = await fetch(`${API_URL}/programs/${id}`);
+      const response = await fetch(`${API_URL}/programs/${id}`, {
+        credentials: 'include'
+      });
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
       }
@@ -164,7 +168,9 @@ export const programsApi = {
   // Get books for a program
   getProgramBooks: async (programId: string): Promise<Book[]> => {
     try {
-      const response = await fetch(`${API_URL}/programs/${programId}/books`);
+      const response = await fetch(`${API_URL}/programs/${programId}/books`, {
+        credentials: 'include'
+      });
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
       }
@@ -178,7 +184,9 @@ export const programsApi = {
   // Get videos for a program
   getProgramVideos: async (programId: string): Promise<Video[]> => {
     try {
-      const response = await fetch(`${API_URL}/programs/${programId}/videos`);
+      const response = await fetch(`${API_URL}/programs/${programId}/videos`, {
+        credentials: 'include'
+      });
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
       }
@@ -192,7 +200,9 @@ export const programsApi = {
   // Get assignments for a program
   getProgramAssignments: async (programId: string): Promise<Assignment[]> => {
     try {
-      const response = await fetch(`${API_URL}/programs/${programId}/assignments`);
+      const response = await fetch(`${API_URL}/programs/${programId}/assignments`, {
+        credentials: 'include'
+      });
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
       }

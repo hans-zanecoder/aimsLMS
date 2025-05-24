@@ -211,9 +211,10 @@ export default function StudentsPage() {
                 )}
                 {filteredStudents.map(student => (
                   <div key={student._id} className="flex items-center space-x-2 py-2">
-                    <Checkbox
+                    <input
+                      type="checkbox"
                       checked={selectedStudents.includes(student._id)}
-                      onCheckedChange={(checked) => handleCheckboxChange(checked as boolean, student._id)}
+                      onChange={e => handleCheckboxChange(e.target.checked, student._id)}
                     />
                     <label className="text-sm">
                       {student.firstName} {student.lastName} ({student.email})
@@ -246,9 +247,10 @@ export default function StudentsPage() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">
-                <Checkbox
+                <input
+                  type="checkbox"
                   checked={selectedStudents.length === filteredStudents.length}
-                  onCheckedChange={handleSelectAllChange}
+                  onChange={e => handleSelectAllChange(e.target.checked)}
                 />
               </TableHead>
               <TableHead>Name</TableHead>
@@ -275,9 +277,10 @@ export default function StudentsPage() {
               filteredStudents.map((student) => (
                 <TableRow key={student._id}>
                   <TableCell>
-                    <Checkbox
+                    <input
+                      type="checkbox"
                       checked={selectedStudents.includes(student._id)}
-                      onCheckedChange={(checked) => handleCheckboxChange(checked as boolean, student._id)}
+                      onChange={e => handleCheckboxChange(e.target.checked, student._id)}
                     />
                   </TableCell>
                   <TableCell>

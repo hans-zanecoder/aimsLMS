@@ -5,6 +5,8 @@ const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 // Input validation functions
 const validateEmail = (email) => {
   if (!email) return 'Email is required';
@@ -118,8 +120,10 @@ router.post('/login', async (req, res) => {
     // Set token in HTTP-only cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'none',
+      ...(isProduction ? { domain: '.us-west1.run.app' } : {}),
+      path: '/',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
 
@@ -147,6 +151,10 @@ router.post('/login', async (req, res) => {
 router.post('/logout', (req, res) => {
   res.cookie('token', '', {
     httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    ...(isProduction ? { domain: '.us-west1.run.app' } : {}),
+    path: '/',
     expires: new Date(0)
   });
   res.json({ message: 'Logged out successfully' });
@@ -225,8 +233,10 @@ router.post('/refresh-token', auth, async (req, res) => {
     // Set token in HTTP-only cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'none',
+      ...(isProduction ? { domain: '.us-west1.run.app' } : {}),
+      path: '/',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
 

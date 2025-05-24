@@ -33,42 +33,45 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'uploads
 app.use(apiLimiter);
 
 // CORS configuration
-const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
-logInfo(`CORS configured for origin: ${corsOrigin}`);
+const allowedOrigins = [
+  process.env.CORS_ORIGIN,
+  process.env.FRONTEND_URL,
+  'http://localhost:3000',
+  'http://localhost:3001'
+].filter(Boolean); // Remove undefined
 
-// Configure CORS with more detailed options
-app.use(cors({
-  origin: [corsOrigin, 'http://localhost:3000', 'http://localhost:3001'], // Allow both ports
+logInfo(`CORS allowed origins: ${allowedOrigins.join(', ')}`);
+
+// Dynamic CORS origin function
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // Optionally, log or handle disallowed origins
+    return callback(new Error('Not allowed by CORS'), false);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
-    'X-Requested-With', 
-    'Accept', 
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
     'Origin',
     'Access-Control-Request-Method',
     'Access-Control-Request-Headers'
   ],
   exposedHeaders: ['Set-Cookie'],
-  preflightContinue: false,
   optionsSuccessStatus: 204
-}));
+};
 
-// Make sure CORS is handled before routes
-app.options('*', cors());
+app.use(cors(corsOptions));
 
-// Add headers middleware for additional CORS support
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin === 'http://localhost:3000' || origin === 'http://localhost:3001') {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  next();
-});
+// Handle preflight requests for all routes
+app.options('*', cors(corsOptions));
 
 // Global error handler
 app.use((err, req, res, next) => {
