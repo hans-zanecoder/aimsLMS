@@ -5,7 +5,17 @@ const nextConfig = {
       {
         source: '/api/:path*',
         destination: process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/:path*` : 'http://127.0.0.1:5002/api/:path*',
-        basePath: false,
+      },
+      {
+        source: '/uploads/:path*',
+        destination: process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/:path*` : 'http://127.0.0.1:5002/uploads/:path*',
+      }
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
         headers: [
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
           { key: 'Access-Control-Allow-Origin', value: process.env.NEXT_PUBLIC_FRONTEND_URL || '*' },
@@ -13,11 +23,6 @@ const nextConfig = {
           { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
         ],
       },
-      {
-        source: '/uploads/:path*',
-        destination: process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/:path*` : 'http://127.0.0.1:5002/uploads/:path*',
-        basePath: false,
-      }
     ];
   },
   reactStrictMode: true,
@@ -28,10 +33,7 @@ const nextConfig = {
     ignoreDuringBuilds: true // Only use during development
   },
   output: 'standalone',
-  experimental: {
-    cookiePrefix: '',
-    skipMiddlewareUrlNormalize: true,
-  },
+  skipMiddlewareUrlNormalize: true,
 };
 
 module.exports = nextConfig;
