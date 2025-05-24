@@ -53,23 +53,28 @@ logInfo(`CORS allowed origins: ${allowedOrigins.join(', ')}`);
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      logInfo('Request with no origin allowed');
+      return callback(null, true);
+    }
+    
+    // Log the request origin
+    logInfo(`Incoming request from origin: ${origin}`);
     
     // Check if the origin is allowed
     if (allowedOrigins.includes(origin)) {
+      logInfo(`Origin ${origin} is explicitly allowed`);
       return callback(null, true);
     }
     
     // Allow any Cloud Run domain in production
     if (process.env.NODE_ENV === 'production' && origin.endsWith('.run.app')) {
+      logInfo(`Cloud Run origin ${origin} allowed`);
       return callback(null, true);
     }
     
-    // Log disallowed origins in development
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Blocked origin:', origin);
-    }
-    
+    // Log disallowed origins
+    logError(`Origin ${origin} is not allowed`);
     return callback(new Error('Not allowed by CORS'), false);
   },
   credentials: true,
@@ -81,16 +86,27 @@ const corsOptions = {
     'Accept',
     'Origin',
     'Access-Control-Request-Method',
-    'Access-Control-Request-Headers'
+    'Access-Control-Request-Headers',
+    'Cookie'
   ],
   exposedHeaders: ['Set-Cookie'],
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 204,
+  maxAge: 86400 // 24 hours in seconds
 };
 
+// Apply CORS middleware
 app.use(cors(corsOptions));
 
 // Handle preflight requests for all routes
 app.options('*', cors(corsOptions));
+
+// Add security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
 
 // Global error handler
 app.use((err, req, res, next) => {

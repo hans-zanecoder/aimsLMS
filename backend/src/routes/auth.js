@@ -119,10 +119,10 @@ router.post('/login', async (req, res) => {
 
     // Set token in HTTP-only cookie
     const domain = process.env.NODE_ENV === 'production' 
-      ? req.get('host').includes('run.app') 
-        ? req.get('host')
-        : undefined
+      ? 'us-west1.run.app'  // Use the shared parent domain
       : undefined;
+
+    console.log('Setting cookie with domain:', domain);
 
     res.cookie('token', token, {
       httpOnly: true,
@@ -155,11 +155,15 @@ router.post('/login', async (req, res) => {
 
 // Logout route
 router.post('/logout', (req, res) => {
+  const domain = process.env.NODE_ENV === 'production' 
+    ? 'us-west1.run.app'
+    : undefined;
+
   res.cookie('token', '', {
     httpOnly: true,
     secure: true,
     sameSite: 'None',
-    domain: isProduction ? '.run.app' : undefined,
+    domain: domain,
     path: '/',
     expires: new Date(0)
   });
@@ -238,10 +242,10 @@ router.post('/refresh-token', auth, async (req, res) => {
 
     // Set token in HTTP-only cookie
     const domain = process.env.NODE_ENV === 'production' 
-      ? req.get('host').includes('run.app') 
-        ? req.get('host')
-        : undefined
+      ? 'us-west1.run.app'  // Use the shared parent domain
       : undefined;
+
+    console.log('Setting cookie with domain:', domain);
 
     res.cookie('token', token, {
       httpOnly: true,
