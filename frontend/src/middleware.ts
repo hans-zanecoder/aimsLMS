@@ -29,8 +29,22 @@ export function middleware(request: NextRequest) {
     console.log('Cookie details:', {
       name: token.name,
       value: token.value ? `${token.value.substring(0, 10)}...` : undefined,
+      path: token.path,
+      expires: token.expires,
     });
   }
+
+  // Function to create response with preserved headers
+  const createResponse = (url: string) => {
+    console.log('Creating redirect response to:', url);
+    const response = NextResponse.redirect(new URL(url, request.url));
+    // Preserve the CORS and cookie headers
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
+    const origin = process.env.NEXT_PUBLIC_FRONTEND_URL || request.headers.get('origin') || '';
+    response.headers.set('Access-Control-Allow-Origin', origin);
+    console.log('Response headers:', Object.fromEntries(response.headers));
+    return response;
+  };
   
   // Function to decode JWT without verification
   const decodeJwt = (token: string): JwtPayload | null => {
@@ -44,18 +58,6 @@ export function middleware(request: NextRequest) {
     }
   };
 
-  // Function to create response with preserved headers
-  const createResponse = (url: URL | string) => {
-    console.log('Creating redirect response to:', typeof url === 'string' ? url : url.toString());
-    const response = NextResponse.redirect(url);
-    // Preserve the CORS and cookie headers
-    response.headers.set('Access-Control-Allow-Credentials', 'true');
-    const origin = process.env.NEXT_PUBLIC_FRONTEND_URL || request.headers.get('origin') || '';
-    response.headers.set('Access-Control-Allow-Origin', origin);
-    console.log('Response headers:', Object.fromEntries(response.headers));
-    return response;
-  };
-
   // Handle login page
   if (path === '/login') {
     console.log('Processing login page request');
@@ -65,7 +67,7 @@ export function middleware(request: NextRequest) {
       if (decoded?.role) {
         console.log('Valid role found in token, redirecting to dashboard');
         const dashboardPath = `/${decoded.role}/dashboard`;
-        return createResponse(new URL(dashboardPath, request.url));
+        return createResponse(dashboardPath);
       }
     }
     console.log('No valid token found, allowing access to login page');
@@ -78,12 +80,12 @@ export function middleware(request: NextRequest) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('from', request.nextUrl.pathname);
     console.log('Redirect URL with from parameter:', loginUrl.toString());
-    return createResponse(loginUrl);
+    return createResponse(loginUrl.toString());
   }
 
   // Role-based access control
   const decoded = decodeJwt(token.value);
-  const role = decoded?.role || 'student';
+  const role = decoded?.role;
   console.log('User role from token:', role);
 
   // Define allowed paths for each role
@@ -94,13 +96,16 @@ export function middleware(request: NextRequest) {
   };
 
   // Check if user has access to the current path
-  const hasAccess = allowedPaths[role as UserRole]?.some((allowedPath: string) => path.startsWith(allowedPath));
+  const hasAccess = role && allowedPaths[role]?.some(allowedPath => path.startsWith(allowedPath));
   console.log('Access check:', { role, path, hasAccess });
-  
+
   if (!hasAccess) {
     console.log('Access denied, redirecting to appropriate dashboard');
-    const dashboardPath = `/${role}/dashboard`;
-    return createResponse(new URL(dashboardPath, request.url));
+    if (role) {
+      const dashboardPath = `/${role}/dashboard`;
+      return createResponse(dashboardPath);
+    }
+    return createResponse('/login');
   }
 
   console.log('Access granted, proceeding with request');

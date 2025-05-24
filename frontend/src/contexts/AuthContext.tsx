@@ -37,32 +37,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Start navigation
       router.push(url);
       
-      // Instead of immediately checking, wait for navigation to complete
-      // Try multiple times with increasing delays
+      // Instead of checking the current path, we'll wait for the middleware response
       for (let i = 0; i < 3; i++) {
         console.log(`Navigation check attempt ${i + 1}`);
         
         // Wait with increasing delay (1s, 2s, 3s)
         await new Promise(resolve => setTimeout(resolve, (i + 1) * 1000));
         
-        // Get the current path without query parameters
-        const currentPath = window.location.pathname;
-        console.log('Current path:', currentPath, 'Expected path:', url);
-        
-        // Check if we've reached the target URL or if we're in a loading state
-        if (currentPath === url) {
-          console.log('Navigation successful');
-          return;
-        }
-        
-        // If we're still on the login page after multiple attempts, something's wrong
-        if (i === 2 && currentPath === '/login') {
-          throw new Error('Still on login page after multiple attempts');
+        try {
+          // Try to fetch the dashboard page to verify access
+          const response = await fetch(url, {
+            credentials: 'include',
+            headers: {
+              'Accept': 'text/html',
+            }
+          });
+          
+          console.log('Navigation check response:', response.status, response.statusText);
+          
+          if (response.ok) {
+            console.log('Navigation successful - page is accessible');
+            return;
+          }
+          
+          if (response.status === 401 || response.status === 403) {
+            throw new Error('Authentication failed - please log in again');
+          }
+        } catch (fetchError) {
+          console.warn(`Navigation check attempt ${i + 1} failed:`, fetchError);
+          if (i === 2) throw fetchError;
         }
       }
       
-      // If we get here, navigation didn't complete in time
-      throw new Error('Navigation timeout - this might be due to slow network or server response');
+      throw new Error('Navigation timeout - unable to verify access to the dashboard');
       
     } catch (error) {
       console.error('Navigation error:', error);
@@ -139,8 +146,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       console.log('Login successful, user role:', user.role);
       
-      // Give more time for the user state to be set
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Give more time for the user state and cookies to be set
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Determine the dashboard path based on role
       const dashboardPath = `/${user.role}/dashboard`;
@@ -155,8 +162,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error instanceof ApiError) {
         errorMessage = error.message;
       } else if (error instanceof Error) {
-        if (error.message.includes('Navigation')) {
-          errorMessage = 'Failed to redirect to dashboard. This might be due to slow network or server response. Please wait a moment and try again.';
+        if (error.message.includes('Authentication failed')) {
+          errorMessage = 'Your session may have expired. Please try logging in again.';
+        } else if (error.message.includes('Navigation')) {
+          errorMessage = 'Unable to access dashboard. Please try logging in again.';
         } else {
           errorMessage = error.message;
         }
