@@ -85,18 +85,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const { user } = await authApi.login(email, password);
       setUser(user);
-
+      
+      console.log('Login successful, user role:', user.role);
+      
       // Redirect based on role
       switch (user.role) {
         case 'admin':
-          router.push('/admin');
+          console.log('Redirecting to admin dashboard...');
+          router.push('/admin/dashboard');
           break;
         case 'instructor':
-          router.push('/instructor');
+          console.log('Redirecting to instructor dashboard...');
+          router.push('/instructor/dashboard');
           break;
         case 'student':
-          router.push('/student');
+          console.log('Redirecting to student dashboard...');
+          router.push('/student/dashboard');
           break;
+        default:
+          console.log('Unknown role, redirecting to login...');
+          router.push('/login');
       }
     } catch (error) {
       console.error('Login error:', error);
