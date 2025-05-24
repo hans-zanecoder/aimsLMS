@@ -1,10 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Mail, Lock, Eye, EyeOff, Chrome, Facebook } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Chrome, Facebook, AlertCircle, X } from 'lucide-react';
 import styles from './login.module.css';
+
+interface AlertProps {
+  type: 'error' | 'warning';
+  message: string;
+  onClose: () => void;
+}
+
+const Alert = ({ type, message, onClose }: AlertProps) => (
+  <div className={`${styles.alert} ${styles[type]}`}>
+    <div className={styles.alertContent}>
+      <AlertCircle className={styles.alertIcon} />
+      <span>{message}</span>
+    </div>
+    <button onClick={onClose} className={styles.alertClose}>
+      <X className={styles.closeIcon} />
+    </button>
+  </div>
+);
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -12,17 +30,43 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const { login, error } = useAuth();
+  const [alert, setAlert] = useState<{ type: 'error' | 'warning'; message: string } | null>(null);
+  const { login, error, isRedirecting: authRedirecting } = useAuth();
   const { toggleTheme, ThemeIcon } = useTheme();
+
+  // Sync with auth context redirection state
+  useEffect(() => {
+    setIsRedirecting(authRedirecting);
+  }, [authRedirecting]);
+
+  // Clear alert after 5 seconds
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => {
+        setAlert(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setAlert(null);
+    
     try {
       await login(email, password);
     } catch (err) {
       console.error('Login failed:', err);
-      // Error is handled by AuthContext
+      // Show error alert
+      setAlert({
+        type: 'error',
+        message: err instanceof Error 
+          ? err.message.includes('Navigation failed')
+            ? 'Failed to redirect after login. Please try refreshing the page.'
+            : err.message
+          : 'An unexpected error occurred during login'
+      });
     } finally {
       // Only set loading to false if we're not redirecting
       if (!isRedirecting) {
@@ -47,6 +91,14 @@ export default function LoginPage() {
 
   return (
     <div className={styles.loginContainer}>
+      {alert && (
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          onClose={() => setAlert(null)}
+        />
+      )}
+
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <h2 className={styles.logo}>AIMA LMS</h2>

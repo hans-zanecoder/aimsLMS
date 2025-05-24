@@ -27,52 +27,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   // Function to safely perform navigation
-  const safeNavigate = async (url: string, maxAttempts = 3) => {
-    console.log('Attempting safe navigation to:', url);
+  const safeNavigate = async (url: string) => {
+    console.log('Attempting navigation to:', url);
     setIsRedirecting(true);
 
     try {
-      // Try Next.js router first
-      try {
-        router.push(url);
-        // Wait a bit to see if the navigation was successful
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Check if we're still on the same page
-        if (window.location.pathname === url) {
-          console.log('Next.js navigation successful');
-          return;
-        }
-      } catch (e) {
-        console.warn('Next.js navigation failed, falling back to window.location:', e);
+      console.log('Using Next.js router for navigation');
+      router.push(url);
+      
+      // Wait a bit to see if the navigation was successful
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Check if we're still on the same page
+      if (window.location.pathname === url) {
+        console.log('Navigation successful');
+      } else {
+        console.log('Current path:', window.location.pathname, 'Expected path:', url);
+        throw new Error('Navigation verification failed');
       }
-
-      // Fallback to window.location
-      let attempts = 0;
-      while (attempts < maxAttempts) {
-        try {
-          window.location.href = url;
-          // Wait to see if navigation starts
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // If we're still here, navigation might have failed
-          if (window.location.pathname === url) {
-            console.log('Window location navigation successful');
-            return;
-          }
-          
-          attempts++;
-          console.warn(`Navigation attempt ${attempts} failed, retrying...`);
-        } catch (e) {
-          console.error('Navigation error:', e);
-          attempts++;
-        }
-      }
-
-      throw new Error('Navigation failed after multiple attempts');
     } catch (error) {
-      console.error('Final navigation error:', error);
-      throw error;
+      console.error('Navigation error:', error);
+      throw new Error(`Failed to navigate to ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsRedirecting(false);
     }
@@ -148,19 +123,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Ensure the user state is set before redirecting
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Get the base URL without any query parameters
-      const baseUrl = window.location.origin;
-      console.log('Base URL:', baseUrl);
-
       // Determine the dashboard path based on role
       const dashboardPath = `/${user.role}/dashboard`;
       console.log('Dashboard path:', dashboardPath);
 
-      // Construct the full URL
-      const redirectUrl = `${baseUrl}${dashboardPath}`;
-      console.log('Starting navigation to:', redirectUrl);
-
-      // Attempt safe navigation
+      // Attempt navigation
       await safeNavigate(dashboardPath);
     } catch (error) {
       console.error('Login error:', error);
@@ -169,8 +136,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error instanceof ApiError) {
         errorMessage = error.message;
       } else if (error instanceof Error) {
-        if (error.message.includes('Navigation failed')) {
-          errorMessage = 'Failed to redirect after login. Please try refreshing the page.';
+        if (error.message.includes('Navigation')) {
+          errorMessage = 'Failed to redirect after login. Please try again.';
         } else {
           errorMessage = error.message;
         }
@@ -204,12 +171,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setError(null);
 
-      // Attempt safe navigation to login page
+      // Navigate to login page
       await safeNavigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
-      // Force navigation to login page if everything else fails
-      window.location.href = '/login';
+      // Even if navigation fails, ensure we clear the state
+      setUser(null);
+      setError(null);
+      // Let the error propagate up
+      throw error;
     } finally {
       setLoading(false);
       setAuthOperationInProgress(false);
