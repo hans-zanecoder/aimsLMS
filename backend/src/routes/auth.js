@@ -118,11 +118,17 @@ router.post('/login', async (req, res) => {
     );
 
     // Set token in HTTP-only cookie
+    const domain = process.env.NODE_ENV === 'production' 
+      ? req.get('host').includes('run.app') 
+        ? req.get('host')
+        : undefined
+      : undefined;
+
     res.cookie('token', token, {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      domain: isProduction ? '.run.app' : undefined,
+      domain: domain,
       path: '/',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
@@ -231,11 +237,17 @@ router.post('/refresh-token', auth, async (req, res) => {
     );
 
     // Set token in HTTP-only cookie
+    const domain = process.env.NODE_ENV === 'production' 
+      ? req.get('host').includes('run.app') 
+        ? req.get('host')
+        : undefined
+      : undefined;
+
     res.cookie('token', token, {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      domain: isProduction ? '.run.app' : undefined,
+      domain: domain,
       path: '/',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });

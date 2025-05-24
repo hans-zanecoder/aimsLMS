@@ -37,29 +37,31 @@ const allowedOrigins = [
   process.env.CORS_ORIGIN,
   process.env.FRONTEND_URL,
   'http://localhost:3000',
-  'http://localhost:3001',
-  'https://aima-lms-frontend-782549404678.us-west1.run.app',
-  'https://aima-lms-backend-782549404678.us-west1.run.app'
+  'http://localhost:3001'
 ].filter(Boolean); // Remove undefined
+
+// Add Cloud Run domains if in production
+if (process.env.NODE_ENV === 'production') {
+  allowedOrigins.push(
+    'https://aima-lms-frontend-782549404678.us-west1.run.app',
+    'https://aima-lms-backend-782549404678.us-west1.run.app'
+  );
+}
 
 logInfo(`CORS allowed origins: ${allowedOrigins.join(', ')}`);
 
-// Dynamic CORS origin function
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
     
     // Check if the origin is allowed
-    const isAllowed = allowedOrigins.some(allowedOrigin => {
-      // Exact match for localhost and specific domains
-      if (allowedOrigin === origin) return true;
-      // Flexible match for Cloud Run domains
-      if (origin.endsWith('.run.app')) return true;
-      return false;
-    });
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
     
-    if (isAllowed) {
+    // Allow any Cloud Run domain in production
+    if (process.env.NODE_ENV === 'production' && origin.endsWith('.run.app')) {
       return callback(null, true);
     }
     
