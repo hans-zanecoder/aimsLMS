@@ -117,21 +117,27 @@ router.post('/login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
-    // Set token in HTTP-only cookie
-    const domain = process.env.NODE_ENV === 'production' 
-      ? 'us-west1.run.app'  // Use the shared parent domain
-      : undefined;
+    // Set cookie domain based on environment
+    const cookieDomain = process.env.COOKIE_DOMAIN || (process.env.NODE_ENV === 'production' ? 'us-west1.run.app' : undefined);
+    
+    console.log('Setting cookie with domain:', cookieDomain);
+    console.log('Frontend URL:', process.env.FRONTEND_URL);
 
-    console.log('Setting cookie with domain:', domain);
-
+    // Set token in HTTP-only cookie with proper security settings
     res.cookie('token', token, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'None',
-      domain: domain,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      domain: cookieDomain,
       path: '/',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
+
+    // Set CORS headers
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL);
+    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
 
     // Return user info (excluding password)
     res.json({
@@ -155,18 +161,23 @@ router.post('/login', async (req, res) => {
 
 // Logout route
 router.post('/logout', (req, res) => {
-  const domain = process.env.NODE_ENV === 'production' 
-    ? 'us-west1.run.app'
-    : undefined;
+  const cookieDomain = process.env.COOKIE_DOMAIN || (process.env.NODE_ENV === 'production' ? 'us-west1.run.app' : undefined);
 
   res.cookie('token', '', {
     httpOnly: true,
-    secure: true,
-    sameSite: 'None',
-    domain: domain,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+    domain: cookieDomain,
     path: '/',
     expires: new Date(0)
   });
+
+  // Set CORS headers
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL);
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+
   res.json({ message: 'Logged out successfully' });
 });
 
