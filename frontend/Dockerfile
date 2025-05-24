@@ -15,25 +15,20 @@ COPY . .
 RUN cp next.config.js next.config.js.bak
 
 # Modify next.config.js to ignore TypeScript and ESLint errors during build
-RUN sed -i 's/const nextConfig = {/const nextConfig = { typescript: { ignoreBuildErrors: true }, eslint: { ignoreDuringBuilds: true },/g' next.config.js
+RUN sed -i 's/const nextConfig = {/const nextConfig = { output: "standalone", typescript: { ignoreBuildErrors: true }, eslint: { ignoreDuringBuilds: true },/g' next.config.js
 
 # Build the Next.js application
-RUN npm run build || true
+RUN npm run build
 
 # Production image
 FROM node:18-slim
 
 WORKDIR /app
 
-# Copy package files and install production dependencies
-COPY package*.json ./
-RUN npm install --production
-
-# Copy built application from builder stage
-COPY --from=builder /app/.next ./.next
+# Copy standalone application
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.js.bak ./next.config.js
-COPY --from=builder /app/package.json ./package.json
 
 # Set environment variables
 ENV PORT=8080
@@ -44,5 +39,5 @@ ENV NEXT_TELEMETRY_DISABLED=1
 EXPOSE 8080
 
 # Command to run the application
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
 
